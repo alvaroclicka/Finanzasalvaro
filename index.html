@@ -321,7 +321,6 @@ canvas{max-width:100%}
     <div class="tipo-toggle">
       <button class="tipo-btn active-all" onclick="setGrafView('all',this)">General</button>
       <button class="tipo-btn" onclick="setGrafView('month',this)">Por mes</button>
-      <button class="tipo-btn" onclick="setGrafView('evol',this)">Evolución</button>
     </div>
   </div>
 
@@ -360,14 +359,6 @@ canvas{max-width:100%}
     </div>
   </div>
 
-  <div id="graf-evol" style="display:none">
-    <div class="graf-row">
-      <div class="graf-block graf-wide">
-        <div class="graf-title">Evolución del saldo acumulado</div>
-        <canvas id="ch-evol"></canvas>
-      </div>
-    </div>
-  </div>
 </div>
 
 <!-- ── AÑADIR ── -->
@@ -823,7 +814,6 @@ function setGrafView(v,btn){
   btn.classList.add('active-all');
   document.getElementById('graf-all').style.display=v==='all'?'':'none';
   document.getElementById('graf-month').style.display=v==='month'?'':'none';
-  document.getElementById('graf-evol').style.display=v==='evol'?'':'none';
   renderGraficos();
 }
 
@@ -850,7 +840,6 @@ function renderGraficos(){
 
   }
   if(grafView==='month') renderGrafMonth();
-  if(grafView==='evol') renderGrafEvol();
 }
 
 function renderGrafMonth(){
@@ -866,20 +855,6 @@ function renderGrafMonth(){
   charts.daily=new Chart(document.getElementById('ch-daily'),{type:'bar',data:{labels:dl,datasets:[{
     label:'Gastos',data:dl.map(d=>+(dayMap[d]||0).toFixed(2)),backgroundColor:CO.red,borderRadius:4,borderSkipped:false
   }]},options:{responsive:true,plugins:{legend:{display:false}},scales:sc()}});
-}
-
-function renderGrafEvol(){
-  const yr=+document.getElementById('graf-year').value;
-  const data=allData().filter(t=>parseDate(t.fecha).getFullYear()===yr).sort((a,b)=>parseDate(a.fecha)-parseDate(b.fecha));
-  let acum=0;
-  const labels=[],valores=[];
-  data.forEach(t=>{acum+=t.tipo.includes('I')?Math.abs(t.importe):-Math.abs(t.importe);labels.push(t.fecha);valores.push(+acum.toFixed(2));});
-  if(charts.evol)charts.evol.destroy();
-  charts.evol=new Chart(document.getElementById('ch-evol'),{type:'line',data:{labels,datasets:[{
-    label:'Saldo acumulado',data:valores,borderColor:CO.blue,backgroundColor:'rgba(79,142,247,0.08)',
-    borderWidth:2,pointRadius:0,pointHoverRadius:4,fill:true,tension:0.3
-  }]},options:{responsive:true,plugins:{legend:{labels:{color:CO.text}}},
-    scales:{x:{ticks:{color:CO.tick,maxTicksLimit:12,maxRotation:0},grid:{color:CO.grid}},y:{ticks:{color:CO.tick,callback:CO.eur},grid:{color:CO.grid}}}}});
 }
 
 // ── AÑADIR ──
