@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fútbol</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+:root{
+  --bg:#080c14;--surface:#111827;--surface2:#1a2235;--border:#1f2d47;
+  --accent:#4f8ef7;--green:#2ecc8a;--red:#e85d6b;--yellow:#f5a623;
+  --text:#e8ecf5;--muted:#6b7599;
+  --font:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh}
+
+/* NAV */
+nav{display:flex;align-items:center;background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0 20px;height:54px;position:sticky;top:0;z-index:100;gap:12px}
+.nav-back{color:var(--muted);text-decoration:none;font-size:13px;display:flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:8px;border:1px solid var(--border);transition:all .15s;white-space:nowrap}
+.nav-back:hover{color:var(--text);border-color:var(--accent)}
+.nav-title{font-size:16px;font-weight:700;color:var(--green);margin-right:8px;white-space:nowrap}
+.nav-tabs{display:flex;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none}
+.nav-tabs::-webkit-scrollbar{display:none}
+.nav-tab{padding:7px 14px;border-radius:8px;cursor:pointer;color:var(--muted);font-weight:500;
+  transition:all .15s;border:none;background:none;font-size:13px;white-space:nowrap;font-family:var(--font)}
+.nav-tab:hover{color:var(--text);background:var(--surface2)}
+.nav-tab.active{color:var(--green);background:rgba(46,204,138,.1)}
+#nav-clock{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* LAYOUT */
+.container{max-width:1100px;margin:0 auto;padding:20px}
+.section{display:none}.section.active{display:block}
+
+/* HERO por sección */
+.section-hero{border-radius:14px;padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;gap:16px}
+.hero-leganes{background:linear-gradient(135deg,#0d1f0d,#1a3a1a);border:1px solid rgba(46,204,138,.2)}
+.hero-armario{background:linear-gradient(135deg,#1a1a0d,#2d2d0a);border:1px solid rgba(245,166,35,.2)}
+.hero-vistos{background:linear-gradient(135deg,#0d0d2d,#1a1a4a);border:1px solid rgba(79,142,247,.2)}
+.hero-icon{font-size:42px;line-height:1}
+.hero-text h2{font-size:20px;font-weight:800;margin-bottom:3px}
+.hero-text p{font-size:13px;color:var(--muted)}
+
+/* CARDS resumen */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px}
+.stat-card .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px}
+.stat-card .value{font-size:22px;font-weight:700;letter-spacing:-.5px}
+
+/* TABLA */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:20px}
+.table-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
+.table-title{font-weight:600;font-size:15px}
+table{width:100%;border-collapse:collapse}
+thead th{padding:9px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.7px;
+  color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap}
+tbody tr{border-bottom:1px solid rgba(31,45,71,.6);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--surface2)}
+td{padding:11px 14px;font-size:13px}
+
+/* FORM */
+.add-form{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px}
+.add-form h3{font-size:14px;font-weight:600;margin-bottom:16px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.form-field{display:flex;flex-direction:column;gap:5px}
+.form-field label{font-size:11px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+input,select{background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  padding:8px 12px;border-radius:8px;font-size:13px;font-family:var(--font);outline:none;width:100%;transition:border-color .15s}
+input:focus,select:focus{border-color:var(--accent)}
+option{background:var(--surface2)}
+.btn{padding:9px 22px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;
+  transition:opacity .15s;font-family:var(--font)}
+.btn:hover{opacity:.85}
+.btn-green{background:var(--green);color:#fff;margin-top:14px}
+.btn-blue{background:var(--accent);color:#fff;margin-top:14px}
+.btn-red{background:var(--red);color:#fff;padding:4px 10px;font-size:11px;border-radius:4px;margin-top:0}
+
+/* PARTIDOS LEGANÉS */
+.matches-list{display:flex;flex-direction:column;gap:8px}
+.match-card{border-radius:10px;padding:14px 18px;border:1px solid;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.match-home{background:rgba(46,204,138,.06);border-color:rgba(46,204,138,.25)}
+.match-away{background:rgba(79,142,247,.06);border-color:rgba(79,142,247,.2)}
+.match-live{background:rgba(232,93,107,.07);border-color:rgba(232,93,107,.35);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{border-color:rgba(232,93,107,.35)}50%{border-color:rgba(232,93,107,.7)}}
+.match-badge{font-size:22px;flex-shrink:0}
+.match-info{flex:1;min-width:160px}
+.match-rival{font-size:14px;font-weight:700;margin-bottom:2px}
+.match-meta{font-size:12px;color:var(--muted)}
+.match-score{font-size:22px;font-weight:800;letter-spacing:-1px;white-space:nowrap}
+.match-score.win{color:var(--green)}
+.match-score.draw{color:var(--yellow)}
+.match-score.loss{color:var(--red)}
+.match-score.pending{color:var(--muted);font-size:14px;font-weight:500}
+.live-dot{display:inline-block;width:7px;height:7px;background:var(--red);border-radius:50%;
+  margin-right:5px;animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* ARMARIO TABS */
+.sub-tabs{display:flex;gap:4px;margin-bottom:16px}
+.sub-tab{padding:7px 18px;border-radius:8px;border:1px solid var(--border);background:none;
+  color:var(--muted);font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font);transition:all .15s}
+.sub-tab.active{background:rgba(245,166,35,.1);border-color:rgba(245,166,35,.4);color:var(--yellow)}
+.sub-content{display:none}.sub-content.active{display:block}
+
+/* CAMISETA CARD */
+.camisetas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:16px}
+.camiseta-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;position:relative}
+.camiseta-card:hover{border-color:var(--yellow)}
+.cam-dorsal{font-size:32px;font-weight:900;color:var(--yellow);line-height:1;margin-bottom:4px}
+.cam-nombre{font-size:13px;font-weight:700;margin-bottom:2px}
+.cam-equipo{font-size:12px;color:var(--muted);margin-bottom:1px}
+.cam-anio{font-size:11px;color:var(--accent)}
+.cam-del{position:absolute;top:10px;right:10px;background:none;border:none;color:var(--muted);
+  cursor:pointer;font-size:16px;transition:color .15s}
+.cam-del:hover{color:var(--red)}
+
+/* BUFANDA ROW */
+.bufanda-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(31,45,71,.5)}
+.bufanda-row:last-child{border-bottom:none}
+.buf-icon{font-size:24px}
+.buf-info{flex:1}
+.buf-equipo{font-size:13px;font-weight:600}
+.buf-desc{font-size:12px;color:var(--muted)}
+
+/* PARTIDOS VISTOS */
+.partido-visto-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(31,45,71,.5)}
+.partido-visto-row:last-child{border-bottom:none}
+.pv-num{font-size:11px;color:var(--muted);width:24px;text-align:right;flex-shrink:0}
+.pv-info{flex:1}
+.pv-partido{font-size:13px;font-weight:600}
+.pv-fecha{font-size:11px;color:var(--muted);margin-top:1px}
+.pv-result{font-size:14px;font-weight:800;white-space:nowrap;color:var(--accent)}
+.badge-comp{font-size:10px;background:rgba(79,142,247,.15);color:var(--accent);
+  padding:2px 7px;border-radius:4px;margin-left:6px}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:#fff;
+  padding:10px 18px;border-radius:8px;font-weight:500;font-size:13px;z-index:999;
+  opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.error{background:var(--red)}
+
+/* FILTROS */
+.filters{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.filter-label{font-size:12px;color:var(--muted);white-space:nowrap}
+
+/* LOADING */
+.loading{text-align:center;padding:32px;color:var(--muted);font-size:14px}
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border);
+  border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:768px){
+  nav{padding:0 12px;height:50px}
+  .container{padding:12px}
+  .stats-row{grid-template-columns:1fr 1fr}
+  .form-grid{grid-template-columns:1fr}
+  .camisetas-grid{grid-template-columns:repeat(2,1fr)}
+  th:last-child,td:last-child{display:none}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-back" href="../index.html">← Portal</a>
+  <span class="nav-title">⚽ Fútbol</span>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showTab('leganes',this)">🔵 Leganés</button>
+    <button class="nav-tab" onclick="showTab('armario',this)">👕 Armario</button>
+    <button class="nav-tab" onclick="showTab('vistos',this)">📋 Partidos vistos</button>
+  </div>
+  <div id="nav-clock"></div>
+</nav>
+
+<div class="container">
+
+<!-- ══ LEGANÉS ══ -->
+<div class="section active" id="sec-leganes">
+  <div class="section-hero hero-leganes">
+    <div class="hero-icon">🔵</div>
+    <div class="hero-text">
+      <h2>C.D. Leganés</h2>
+      <p>Calendario y resultados de la temporada actual</p>
+    </div>
+  </div>
+  <div class="stats-row" id="leg-stats">
+    <div class="stat-card"><div class="label">Partidos jugados</div><div class="value" id="st-jugados">—</div></div>
+    <div class="stat-card"><div class="label">Victorias</div><div class="value" style="color:var(--green)" id="st-victorias">—</div></div>
+    <div class="stat-card"><div class="label">Próximo partido</div><div class="value" style="font-size:14px;color:var(--yellow)" id="st-proximo">—</div></div>
+  </div>
+  <div class="filters">
+    <span class="filter-label">Filtrar:</span>
+    <select id="leg-filter" onchange="renderLeganes()" style="width:auto">
+      <option value="all">Todos</option>
+      <option value="home">🏠 Casa</option>
+      <option value="away">✈️ Fuera</option>
+      <option value="past">Jugados</option>
+      <option value="upcoming">Próximos</option>
+    </select>
+  </div>
+  <div id="leganes-list"><div class="loading"><span class="spinner"></span>Cargando partidos...</div></div>
+</div>
+
+<!-- ══ ARMARIO ══ -->
+<div class="section" id="sec-armario">
+  <div class="section-hero hero-armario">
+    <div class="hero-icon">👕</div>
+    <div class="hero-text">
+      <h2>Mi Armario</h2>
+      <p>Camisetas y bufandas de tu colección</p>
+    </div>
+  </div>
+
+  <div class="sub-tabs">
+    <button class="sub-tab active" onclick="showSubTab('camisetas',this)">👕 Camisetas</button>
+    <button class="sub-tab" onclick="showSubTab('bufandas',this)">🧣 Bufandas</button>
+  </div>
+
+  <!-- Camisetas -->
+  <div class="sub-content active" id="sub-camisetas">
+    <div class="add-form">
+      <h3>➕ Añadir camiseta</h3>
+      <div class="form-grid">
+        <div class="form-field"><label>Equipo</label><input id="cam-equipo" placeholder="Ej: Real Madrid"></div>
+        <div class="form-field"><label>Temporada / Año</label><input id="cam-anio" placeholder="Ej: 2023-24"></div>
+        <div class="form-field"><label>Dorsal</label><input id="cam-dorsal" type="number" placeholder="Ej: 10" min="1" max="99"></div>
+        <div class="form-field"><label>Nombre en la camiseta</label><input id="cam-nombre" placeholder="Ej: BENZEMA"></div>
+        <div class="form-field"><label>Tipo</label>
+          <select id="cam-tipo">
+            <option value="Local">Local</option>
+            <option value="Visitante">Visitante</option>
+            <option value="Tercera">Tercera equipación</option>
+            <option value="Otra">Otra</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Nota (opcional)</label><input id="cam-nota" placeholder="Ej: Firmada"></div>
+      </div>
+      <button class="btn btn-green" onclick="addCamiseta()">Añadir camiseta</button>
+    </div>
+    <div class="camisetas-grid" id="camisetas-grid"></div>
+  </div>
+
+  <!-- Bufandas -->
+  <div class="sub-content" id="sub-bufandas">
+    <div class="add-form">
+      <h3>🧣 Añadir bufanda</h3>
+      <div class="form-grid">
+        <div class="form-field"><label>Equipo</label><input id="buf-equipo" placeholder="Ej: Leganés"></div>
+        <div class="form-field"><label>Descripción</label><input id="buf-desc" placeholder="Ej: Edición especial ascenso"></div>
+        <div class="form-field"><label>Año</label><input id="buf-anio" placeholder="Ej: 2024"></div>
+      </div>
+      <button class="btn btn-green" onclick="addBufanda()">Añadir bufanda</button>
+    </div>
+    <div class="table-wrap">
+      <div class="table-header"><span class="table-title">Mis bufandas</span><span class="table-count" id="buf-count"></span></div>
+      <div style="padding:0 18px 12px" id="bufandas-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PARTIDOS VISTOS ══ -->
+<div class="section" id="sec-vistos">
+  <div class="section-hero hero-vistos">
+    <div class="hero-icon">📋</div>
+    <div class="hero-text">
+      <h2>Partidos vistos</h2>
+      <p>Registro de todos los partidos que has visto</p>
+    </div>
+  </div>
+
+  <div class="add-form">
+    <h3>➕ Añadir partido visto</h3>
+    <div class="form-grid">
+      <div class="form-field" style="grid-column:1/-1"><label>Partido</label>
+        <input id="pv-partido" placeholder="Ej: Leganés 2-1 Real Madrid"></div>
+      <div class="form-field"><label>Fecha</label><input type="date" id="pv-fecha"></div>
+      <div class="form-field"><label>Resultado</label><input id="pv-result" placeholder="Ej: 2-1"></div>
+      <div class="form-field"><label>Competición</label>
+        <select id="pv-comp">
+          <option>LaLiga</option><option>Champions League</option>
+          <option>Copa del Rey</option><option>Europa League</option>
+          <option>Conference League</option><option>Supercopa</option>
+          <option>Amistoso</option><option>Otra</option>
+        </select>
+      </div>
+      <div class="form-field"><label>¿Visto en directo?</label>
+        <select id="pv-directo">
+          <option value="tv">📺 Por televisión</option>
+          <option value="estadio">🏟️ En el estadio</option>
+          <option value="online">💻 Online</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-blue" onclick="addPartidoVisto()">Añadir partido</button>
+  </div>
+
+  <div class="table-wrap">
+    <div class="table-header">
+      <span class="table-title">Partidos vistos</span>
+      <span class="table-count" id="pv-count"></span>
+    </div>
+    <div style="padding:0 18px 12px" id="pv-list"></div>
+  </div>
+</div>
+
+</div><!-- /container -->
+<div class="toast" id="toast"></div>
+
+<script>
+const FD_TOKEN = 'e7c0f107ddfc4eb7943e7ad532e661f1';
+const LEGANES_ID = 745;
+const LS_ARM = 'futbol_armario_v1';
+const LS_PV  = 'futbol_vistos_v1';
+const WORKER  = 'https://misfinanzas-api.alvarohenche15.workers.dev';
+
+const MESES = ['','Enero','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+// ── Storage ──
+function loadLS(key){ try{ return JSON.parse(localStorage.getItem(key)||'[]'); }catch(e){ return []; } }
+function saveLS(key,data){ try{ localStorage.setItem(key,JSON.stringify(data)); }catch(e){} }
+
+let CAMISETAS = loadLS(LS_ARM+'_cam');
+let BUFANDAS  = loadLS(LS_ARM+'_buf');
+let PARTIDOS_VISTOS = loadLS(LS_PV);
+let LEGANES_MATCHES = [];
+
+// ── Nav ──
+function showTab(name,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('sec-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='leganes') loadLeganes();
+  if(name==='armario') renderArmario();
+  if(name==='vistos') renderVistos();
+}
+
+function showSubTab(name,btn){
+  document.querySelectorAll('.sub-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.sub-content').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('sub-'+name).classList.add('active');
+}
+
+// ── Reloj ──
+function updateClock(){
+  const fmt=new Intl.DateTimeFormat('es-ES',{timeZone:'Europe/Madrid',
+    weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+  const p=fmt.formatToParts(new Date()),g=t=>p.find(x=>x.type===t)?.value||'';
+  let wd=g('weekday');wd=wd.charAt(0).toUpperCase()+wd.slice(1).replace('.','');
+  document.getElementById('nav-clock').textContent=`${wd} ${g('day')}/${g('month')} ${g('hour')}:${g('minute')}:${g('second')}`;
+}
+updateClock();setInterval(updateClock,1000);
+
+// ── Toast ──
+function showToast(msg,err=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast'+(err?' error':'')+' show';
+  setTimeout(()=>t.className='toast'+(err?' error':''),2800);
+}
+
+// ══════════════════════════
+// LEGANÉS
+// ══════════════════════════
+async function loadLeganes(){
+  const list=document.getElementById('leganes-list');
+  list.innerHTML='<div class="loading"><span class="spinner"></span>Cargando partidos del Leganés...</div>';
+  try{
+    const r = await fetch(`https://api.football-data.org/v4/teams/${LEGANES_ID}/matches?status=SCHEDULED,LIVE,IN_PLAY,PAUSED,FINISHED&limit=50`,{
+      headers:{'X-Auth-Token':FD_TOKEN}
+    });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const data = await r.json();
+    LEGANES_MATCHES = data.matches || [];
+    renderLeganes();
+  }catch(e){
+    list.innerHTML=`<div class="loading">⚠️ No se pudieron cargar los partidos. ${e.message}</div>`;
+  }
+}
+
+function renderLeganes(){
+  const filter = document.getElementById('leg-filter').value;
+  const now = new Date();
+
+  let matches = LEGANES_MATCHES.filter(m=>{
+    const isHome = m.homeTeam?.id === LEGANES_ID;
+    const date = new Date(m.utcDate);
+    const finished = m.status === 'FINISHED';
+    const upcoming = ['SCHEDULED','TIMED'].includes(m.status);
+    const live = ['LIVE','IN_PLAY','PAUSED'].includes(m.status);
+
+    if(filter==='home' && !isHome) return false;
+    if(filter==='away' && isHome) return false;
+    if(filter==='past' && !finished) return false;
+    if(filter==='upcoming' && !upcoming) return false;
+    return true;
+  });
+
+  // Ordenar: próximos primero, luego jugados más recientes
+  matches.sort((a,b)=>{
+    const da=new Date(a.utcDate),db=new Date(b.utcDate);
+    const fa=['SCHEDULED','TIMED'].includes(a.status);
+    const fb=['SCHEDULED','TIMED'].includes(b.status);
+    if(fa&&fb) return da-db;
+    if(fa) return -1; if(fb) return 1;
+    return db-da;
+  });
+
+  // Stats
+  const finished = LEGANES_MATCHES.filter(m=>m.status==='FINISHED');
+  const wins = finished.filter(m=>{
+    const isHome=m.homeTeam?.id===LEGANES_ID;
+    const gs=m.score?.fullTime;
+    if(!gs) return false;
+    return isHome ? gs.home > gs.away : gs.away > gs.home;
+  }).length;
+  document.getElementById('st-jugados').textContent = finished.length;
+  document.getElementById('st-victorias').textContent = wins;
+  const next = LEGANES_MATCHES.find(m=>['SCHEDULED','TIMED'].includes(m.status));
+  if(next){
+    const d = new Date(next.utcDate);
+    const rival = next.homeTeam?.id===LEGANES_ID ? next.awayTeam?.name : next.homeTeam?.name;
+    document.getElementById('st-proximo').textContent = `${rival} · ${d.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit'})} ${d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'})}`;
+  } else {
+    document.getElementById('st-proximo').textContent = 'Por definir';
+  }
+
+  if(!matches.length){
+    document.getElementById('leganes-list').innerHTML='<div class="loading">No hay partidos para mostrar.</div>';
+    return;
+  }
+
+  document.getElementById('leganes-list').innerHTML='<div class="matches-list">'+matches.map(m=>{
+    const isHome = m.homeTeam?.id === LEGANES_ID;
+    const rival = isHome ? m.awayTeam?.name : m.homeTeam?.name;
+    const date = new Date(m.utcDate);
+    const live = ['LIVE','IN_PLAY','PAUSED'].includes(m.status);
+    const finished = m.status === 'FINISHED';
+
+    const dateStr = date.toLocaleDateString('es-ES',{weekday:'short',day:'2-digit',month:'long',timeZone:'Europe/Madrid'});
+    const timeStr = date.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'});
+
+    let scoreHTML = '';
+    if(live){
+      const gs=m.score?.fullTime||m.score?.halfTime||{};
+      const legGoals = isHome ? (gs.home??'?') : (gs.away??'?');
+      const rivGoals = isHome ? (gs.away??'?') : (gs.home??'?');
+      scoreHTML=`<div class="match-score"><span class="live-dot"></span>${legGoals} - ${rivGoals}</div>`;
+    } else if(finished){
+      const gs=m.score?.fullTime||{};
+      const legGoals = isHome ? gs.home : gs.away;
+      const rivGoals = isHome ? gs.away : gs.home;
+      const cls = legGoals>rivGoals?'win':legGoals<rivGoals?'loss':'draw';
+      scoreHTML=`<div class="match-score ${cls}">${legGoals} - ${rivGoals}</div>`;
+    } else {
+      scoreHTML=`<div class="match-score pending">${timeStr}</div>`;
+    }
+
+    const badge = isHome ? '🏠' : '✈️';
+    const cls = live ? 'match-live' : isHome ? 'match-home' : 'match-away';
+    const meta = finished||live ? dateStr : `${dateStr}`;
+
+    return `<div class="match-card ${cls}">
+      <div class="match-badge">${badge}</div>
+      <div class="match-info">
+        <div class="match-rival">Leganés vs ${rival}</div>
+        <div class="match-meta">${meta} · ${isHome?'<span style="color:var(--green)">Casa</span>':'<span style="color:var(--accent)">Fuera</span>'}${live?` · <span style="color:var(--red)">EN DIRECTO</span>`:''}</div>
+      </div>
+      ${scoreHTML}
+    </div>`;
+  }).join('')+'</div>';
+}
+
+// ══════════════════════════
+// ARMARIO - CAMISETAS
+// ══════════════════════════
+function addCamiseta(){
+  const equipo=document.getElementById('cam-equipo').value.trim();
+  const anio=document.getElementById('cam-anio').value.trim();
+  const dorsal=document.getElementById('cam-dorsal').value.trim();
+  const nombre=document.getElementById('cam-nombre').value.trim();
+  const tipo=document.getElementById('cam-tipo').value;
+  const nota=document.getElementById('cam-nota').value.trim();
+  if(!equipo){showToast('Indica el equipo',true);return;}
+  CAMISETAS.push({id:Date.now(),equipo,anio,dorsal,nombre,tipo,nota});
+  saveLS(LS_ARM+'_cam',CAMISETAS);
+  ['cam-equipo','cam-anio','cam-dorsal','cam-nombre','cam-nota'].forEach(id=>document.getElementById(id).value='');
+  renderCamisetas();
+  showToast('✅ Camiseta añadida');
+}
+
+function removeCamiseta(id){
+  CAMISETAS=CAMISETAS.filter(c=>c.id!==id);
+  saveLS(LS_ARM+'_cam',CAMISETAS);
+  renderCamisetas();
+  showToast('Camiseta eliminada');
+}
+
+function renderCamisetas(){
+  const grid=document.getElementById('camisetas-grid');
+  if(!CAMISETAS.length){
+    grid.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px 0">No hay camisetas todavía.</div>';
+    return;
+  }
+  grid.innerHTML=CAMISETAS.map(c=>`
+    <div class="camiseta-card">
+      <button class="cam-del" onclick="removeCamiseta(${c.id})">✕</button>
+      <div class="cam-dorsal">#${c.dorsal||'—'}</div>
+      <div class="cam-nombre">${c.nombre||'Sin nombre'}</div>
+      <div class="cam-equipo">${c.equipo} · ${c.tipo}</div>
+      <div class="cam-anio">${c.anio||''}${c.nota?` · ${c.nota}`:''}</div>
+    </div>`).join('');
+}
+
+// ══════════════════════════
+// ARMARIO - BUFANDAS
+// ══════════════════════════
+function addBufanda(){
+  const equipo=document.getElementById('buf-equipo').value.trim();
+  const desc=document.getElementById('buf-desc').value.trim();
+  const anio=document.getElementById('buf-anio').value.trim();
+  if(!equipo){showToast('Indica el equipo',true);return;}
+  BUFANDAS.push({id:Date.now(),equipo,desc,anio});
+  saveLS(LS_ARM+'_buf',BUFANDAS);
+  ['buf-equipo','buf-desc','buf-anio'].forEach(id=>document.getElementById(id).value='');
+  renderBufandas();
+  showToast('✅ Bufanda añadida');
+}
+
+function removeBufanda(id){
+  BUFANDAS=BUFANDAS.filter(b=>b.id!==id);
+  saveLS(LS_ARM+'_buf',BUFANDAS);
+  renderBufandas();
+  showToast('Bufanda eliminada');
+}
+
+function renderBufandas(){
+  const list=document.getElementById('bufandas-list');
+  document.getElementById('buf-count').textContent=`${BUFANDAS.length} bufandas`;
+  if(!BUFANDAS.length){
+    list.innerHTML='<div style="color:var(--muted);font-size:13px;padding:12px 0">No hay bufandas todavía.</div>';
+    return;
+  }
+  list.innerHTML=BUFANDAS.map(b=>`
+    <div class="bufanda-row">
+      <div class="buf-icon">🧣</div>
+      <div class="buf-info">
+        <div class="buf-equipo">${b.equipo}${b.anio?` <span style="color:var(--accent);font-size:11px">${b.anio}</span>`:''}</div>
+        ${b.desc?`<div class="buf-desc">${b.desc}</div>`:''}
+      </div>
+      <button class="btn btn-red" onclick="removeBufanda(${b.id})">✕</button>
+    </div>`).join('');
+}
+
+function renderArmario(){
+  renderCamisetas();
+  renderBufandas();
+}
+
+// ══════════════════════════
+// PARTIDOS VISTOS
+// ══════════════════════════
+const PV_ICONS={'tv':'📺','estadio':'🏟️','online':'💻'};
+
+function addPartidoVisto(){
+  const partido=document.getElementById('pv-partido').value.trim();
+  const fecha=document.getElementById('pv-fecha').value;
+  const result=document.getElementById('pv-result').value.trim();
+  const comp=document.getElementById('pv-comp').value;
+  const directo=document.getElementById('pv-directo').value;
+  if(!partido){showToast('Indica el partido',true);return;}
+  if(!fecha){showToast('Indica la fecha',true);return;}
+  PARTIDOS_VISTOS.push({id:Date.now(),partido,fecha,result,comp,directo});
+  PARTIDOS_VISTOS.sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
+  saveLS(LS_PV,PARTIDOS_VISTOS);
+  ['pv-partido','pv-result'].forEach(id=>document.getElementById(id).value='');
+  renderVistos();
+  showToast('✅ Partido añadido');
+}
+
+function removePartidoVisto(id){
+  PARTIDOS_VISTOS=PARTIDOS_VISTOS.filter(p=>p.id!==id);
+  saveLS(LS_PV,PARTIDOS_VISTOS);
+  renderVistos();
+  showToast('Partido eliminado');
+}
+
+function renderVistos(){
+  const list=document.getElementById('pv-list');
+  document.getElementById('pv-count').textContent=`${PARTIDOS_VISTOS.length} partidos`;
+  if(!PARTIDOS_VISTOS.length){
+    list.innerHTML='<div style="color:var(--muted);font-size:13px;padding:12px 0">No hay partidos registrados todavía.</div>';
+    return;
+  }
+  list.innerHTML=PARTIDOS_VISTOS.map((p,i)=>`
+    <div class="partido-visto-row">
+      <div class="pv-num">${PARTIDOS_VISTOS.length-i}</div>
+      <div class="pv-info">
+        <div class="pv-partido">
+          ${PV_ICONS[p.directo]||'📺'} ${p.partido}
+          <span class="badge-comp">${p.comp}</span>
+        </div>
+        <div class="pv-fecha">${new Date(p.fecha+'T12:00:00').toLocaleDateString('es-ES',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})}</div>
+      </div>
+      ${p.result?`<div class="pv-result">${p.result}</div>`:''}
+      <button class="btn btn-red" onclick="removePartidoVisto(${p.id})">✕</button>
+    </div>`).join('');
+}
+
+// ── Init ──
+document.getElementById('pv-fecha').value = new Date().toISOString().split('T')[0];
+loadLeganes();
+renderVistos();
+</script>
+</body>
+</html>
