@@ -3,128 +3,168 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mi Portal</title>
+<title>Portal</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#080c14">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden}
 body{
   font-family:'Inter',system-ui,sans-serif;
-  min-height:100vh;
-  background:#080c14;
+  min-height:100vh;background:#080c14;
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;
-  overflow:hidden;
   position:relative;
 }
 
-/* Fondo animado con partículas */
-.bg-particles{position:fixed;inset:0;z-index:0;pointer-events:none}
-canvas#particles{position:absolute;inset:0;width:100%;height:100%}
-
-/* Contenido */
-.portal{position:relative;z-index:10;text-align:center;padding:24px}
-.portal-title{
-  font-size:clamp(28px,6vw,52px);font-weight:900;letter-spacing:-2px;
-  color:#fff;margin-bottom:8px;
-  text-shadow:0 0 40px rgba(79,142,247,0.4);
+/* ── Fondo campo de fútbol sutil ── */
+.field-bg{
+  position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 50%, rgba(15,40,15,0.6) 0%, transparent 70%),
+    #080c14;
 }
-.portal-sub{font-size:clamp(13px,2vw,16px);color:#6b7599;margin-bottom:48px;letter-spacing:.5px}
+.field-lines{
+  position:fixed;inset:0;z-index:0;opacity:0.04;
+  background-image:
+    /* Círculo central */
+    radial-gradient(circle 120px at 50% 50%, transparent 118px, #4ade80 120px, #4ade80 122px, transparent 124px),
+    /* Línea central */
+    linear-gradient(to right, transparent 49.8%, #4ade80 49.8%, #4ade80 50.2%, transparent 50.2%),
+    /* Área izq */
+    linear-gradient(to bottom, transparent 30%, #4ade80 30%, #4ade80 30.3%, transparent 30.3%),
+    linear-gradient(to bottom, transparent 69.7%, #4ade80 69.7%, #4ade80 70%, transparent 70%),
+    linear-gradient(to right, transparent 14.8%, #4ade80 14.8%, #4ade80 15.1%, transparent 15.1%),
+    /* Área dcha */
+    linear-gradient(to right, transparent 84.9%, #4ade80 84.9%, #4ade80 85.2%, transparent 85.2%);
+}
+
+/* ── Canvas partículas ── */
+canvas#particles{position:fixed;inset:0;z-index:1;width:100%;height:100%;pointer-events:none}
+
+/* ── Emojis flotantes ── */
+.floaters{position:fixed;inset:0;z-index:2;pointer-events:none;overflow:hidden}
+.floater{
+  position:absolute;bottom:-60px;font-size:26px;
+  animation:floatUp linear infinite;opacity:0;
+  filter:drop-shadow(0 2px 8px rgba(0,0,0,0.5));
+}
+@keyframes floatUp{
+  0%{transform:translateY(0) rotate(0deg) scale(0.8);opacity:0}
+  5%{opacity:0.7}
+  95%{opacity:0.5}
+  100%{transform:translateY(-110vh) rotate(720deg) scale(1.2);opacity:0}
+}
+
+/* ── Contenido ── */
+.portal{position:relative;z-index:10;text-align:center;padding:24px 16px}
+
+/* Escudo Leganés animado arriba */
+.lega-badge{
+  font-size:56px;margin-bottom:16px;display:block;
+  animation:badgePulse 3s ease-in-out infinite;
+  filter:drop-shadow(0 0 20px rgba(46,204,138,0.4));
+}
+@keyframes badgePulse{
+  0%,100%{transform:scale(1);filter:drop-shadow(0 0 20px rgba(46,204,138,0.3))}
+  50%{transform:scale(1.08);filter:drop-shadow(0 0 35px rgba(46,204,138,0.7))}
+}
 
 /* Cards */
-.cards{display:flex;gap:24px;flex-wrap:wrap;justify-content:center}
+.cards{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;margin-top:8px}
 .card{
-  position:relative;width:280px;height:340px;border-radius:24px;
-  cursor:pointer;overflow:hidden;border:1px solid rgba(255,255,255,0.08);
-  transition:transform .3s cubic-bezier(.34,1.56,.64,1), box-shadow .3s;
+  position:relative;width:260px;height:320px;border-radius:22px;
+  cursor:pointer;overflow:hidden;border:1px solid rgba(255,255,255,0.07);
+  transition:transform .35s cubic-bezier(.34,1.56,.64,1),box-shadow .35s,border-color .35s;
   text-decoration:none;display:block;
 }
-.card:hover{transform:translateY(-12px) scale(1.02);box-shadow:0 30px 60px rgba(0,0,0,0.5)}
-.card-bg{position:absolute;inset:0;transition:transform .5s}
-.card:hover .card-bg{transform:scale(1.08)}
+.card:hover{transform:translateY(-14px) scale(1.03);border-color:rgba(255,255,255,0.18)}
+.card-bg{position:absolute;inset:0;transition:transform .6s}
+.card:hover .card-bg{transform:scale(1.1)}
 
-/* Card Finanzas */
-.card-finanzas .card-bg{background:linear-gradient(145deg,#0d1f3c 0%,#1a3a6e 50%,#0d2d5e 100%)}
-.card-finanzas::before{
-  content:'';position:absolute;inset:0;z-index:1;
-  background:radial-gradient(circle at 30% 70%, rgba(79,142,247,0.25) 0%, transparent 60%);
+/* Finanzas */
+.card-finanzas .card-bg{background:linear-gradient(145deg,#0a1628 0%,#132044 50%,#0c1e3e 100%)}
+.card-finanzas:hover{box-shadow:0 30px 60px rgba(79,142,247,0.3)}
+.card-finanzas::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 25% 75%,rgba(79,142,247,0.2) 0%,transparent 55%);
+  z-index:1;pointer-events:none
 }
 
-/* Card Fútbol */
-.card-futbol .card-bg{background:linear-gradient(145deg,#0d2010 0%,#1a4a20 50%,#0d3010 100%)}
-.card-futbol::before{
-  content:'';position:absolute;inset:0;z-index:1;
-  background:radial-gradient(circle at 70% 30%, rgba(46,204,138,0.25) 0%, transparent 60%);
+/* Fútbol */
+.card-futbol .card-bg{background:linear-gradient(145deg,#071a07 0%,#0f2e0f 50%,#091a09 100%)}
+.card-futbol:hover{box-shadow:0 30px 60px rgba(46,204,138,0.3)}
+.card-futbol::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 75% 25%,rgba(46,204,138,0.2) 0%,transparent 55%);
+  z-index:1;pointer-events:none
 }
 
-.card-content{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;gap:16px}
-.card-icon{font-size:72px;line-height:1;filter:drop-shadow(0 4px 16px rgba(0,0,0,0.4));transition:transform .3s}
-.card:hover .card-icon{transform:scale(1.15) rotate(-5deg)}
-.card-name{font-size:22px;font-weight:800;color:#fff;letter-spacing:-.5px}
-.card-desc{font-size:13px;color:rgba(255,255,255,0.55);text-align:center;line-height:1.5}
-.card-arrow{
-  margin-top:8px;width:40px;height:40px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;font-size:18px;
-  transition:all .3s;
+.card-content{
+  position:relative;z-index:2;height:100%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:28px 20px;gap:14px
 }
-.card-finanzas .card-arrow{background:rgba(79,142,247,0.2);color:#4f8ef7}
-.card-futbol .card-arrow{background:rgba(46,204,138,0.2);color:#2ecc8a}
-.card:hover .card-arrow{transform:translateX(6px)}
-
-/* Animación flotante de iconos de fondo */
-.float-icons{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-.fi{position:absolute;font-size:28px;opacity:0.06;animation:floatUp linear infinite}
-@keyframes floatUp{
-  0%{transform:translateY(110%) rotate(0deg);opacity:0}
-  10%{opacity:0.06}
-  90%{opacity:0.06}
-  100%{transform:translateY(-110%) rotate(360deg);opacity:0}
+.card-icon{
+  font-size:68px;line-height:1;
+  filter:drop-shadow(0 4px 20px rgba(0,0,0,0.5));
+  transition:transform .4s cubic-bezier(.34,1.56,.64,1)
 }
+.card:hover .card-icon{transform:scale(1.2) rotate(-6deg)}
+.card-name{font-size:21px;font-weight:800;color:#fff;letter-spacing:-.5px}
+.card-desc{font-size:12px;color:rgba(255,255,255,0.5);text-align:center;line-height:1.55}
+.card-btn{
+  margin-top:4px;padding:8px 22px;border-radius:20px;font-size:12px;font-weight:700;
+  letter-spacing:.5px;border:none;cursor:pointer;transition:all .2s;font-family:inherit
+}
+.card-finanzas .card-btn{background:rgba(79,142,247,0.2);color:#4f8ef7;border:1px solid rgba(79,142,247,0.4)}
+.card-futbol  .card-btn{background:rgba(46,204,138,0.2);color:#2ecc8a;border:1px solid rgba(46,204,138,0.4)}
+.card:hover .card-btn{transform:scale(1.06)}
 
-/* Hora */
+/* Reloj */
 #portal-clock{
-  position:fixed;top:20px;right:24px;
-  font-size:13px;color:#4b5680;font-variant-numeric:tabular-nums;z-index:20;
+  position:fixed;top:16px;right:20px;z-index:20;
+  font-size:12px;color:rgba(255,255,255,0.3);font-variant-numeric:tabular-nums
 }
 
-@media(max-width:640px){
-  .cards{flex-direction:column;align-items:center}
-  .card{width:85vw;height:280px}
-  .card-icon{font-size:56px}
+@media(max-width:600px){
+  .cards{flex-direction:column;align-items:center;gap:14px}
+  .card{width:82vw;height:260px}
+  .card-icon{font-size:52px}
+  .lega-badge{font-size:44px}
 }
 </style>
 </head>
 <body>
 
+<div class="field-bg"></div>
+<div class="field-lines"></div>
+<canvas id="particles"></canvas>
+<div class="floaters" id="floaters"></div>
 <div id="portal-clock"></div>
 
-<canvas id="particles"></canvas>
-
 <div class="portal">
-  <div class="portal-title">Mi Portal</div>
-  <div class="portal-sub">Elige una sección para empezar</div>
+  <span class="lega-badge">🔵</span>
 
   <div class="cards">
-    <!-- Finanzas -->
     <a class="card card-finanzas" href="finanzas/index.html">
       <div class="card-bg"></div>
-      <div class="float-icons" id="fi-finanzas"></div>
       <div class="card-content">
         <div class="card-icon">💳</div>
         <div class="card-name">Finanzas</div>
-        <div class="card-desc">Saldo, movimientos, gráficos y control de tus gastos e ingresos</div>
-        <div class="card-arrow">→</div>
+        <div class="card-desc">Saldo, movimientos, gráficos y control de gastos e ingresos</div>
+        <div class="card-btn">ENTRAR →</div>
       </div>
     </a>
 
-    <!-- Fútbol -->
     <a class="card card-futbol" href="futbol/index.html">
       <div class="card-bg"></div>
-      <div class="float-icons" id="fi-futbol"></div>
       <div class="card-content">
         <div class="card-icon">⚽</div>
         <div class="card-name">Fútbol</div>
-        <div class="card-desc">Armario, partidos vistos y calendario completo del Leganés</div>
-        <div class="card-arrow">→</div>
+        <div class="card-desc">Armario, partidos vistos y calendario del Leganés</div>
+        <div class="card-btn">ENTRAR →</div>
       </div>
     </a>
   </div>
@@ -133,68 +173,64 @@ canvas#particles{position:absolute;inset:0;width:100%;height:100%}
 <script>
 // ── Reloj Madrid ──
 function updateClock(){
-  const fmt = new Intl.DateTimeFormat('es-ES',{
-    timeZone:'Europe/Madrid',weekday:'short',day:'2-digit',month:'2-digit',
-    year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false
-  });
-  const parts = fmt.formatToParts(new Date());
-  const g = t => parts.find(p=>p.type===t)?.value||'';
-  let wd=g('weekday'); wd=wd.charAt(0).toUpperCase()+wd.slice(1).replace('.','');
-  document.getElementById('portal-clock').textContent=`${wd} ${g('day')}/${g('month')}/${g('year')} · ${g('hour')}:${g('minute')}:${g('second')}`;
+  const fmt=new Intl.DateTimeFormat('es-ES',{timeZone:'Europe/Madrid',
+    weekday:'short',day:'2-digit',month:'2-digit',year:'numeric',
+    hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+  const p=fmt.formatToParts(new Date()),g=t=>p.find(x=>x.type===t)?.value||'';
+  let wd=g('weekday');wd=wd.charAt(0).toUpperCase()+wd.slice(1).replace('.','');
+  document.getElementById('portal-clock').textContent=
+    `${wd} ${g('day')}/${g('month')}/${g('year')} · ${g('hour')}:${g('minute')}:${g('second')}`;
 }
-updateClock(); setInterval(updateClock,1000);
+updateClock();setInterval(updateClock,1000);
 
-// ── Iconos flotantes ──
-const finEmojis=['💶','💵','📊','💰','📈','💳','🏦','💎'];
-const futEmojis=['⚽','🥅','👟','🏆','🎽','📋','🔵','⚡'];
-function spawnFloats(containerId, emojis){
-  const el=document.getElementById(containerId);
-  setInterval(()=>{
-    const span=document.createElement('span');
-    span.className='fi';
-    span.textContent=emojis[Math.floor(Math.random()*emojis.length)];
-    span.style.left=Math.random()*90+'%';
-    span.style.animationDuration=(6+Math.random()*6)+'s';
-    span.style.animationDelay='0s';
-    el.appendChild(span);
-    setTimeout(()=>span.remove(),13000);
-  },700);
+// ── Emojis flotantes mezcla Leganés + dinero ──
+const EMOJIS = [
+  '⚽','⚽','⚽','🔵','🔵','🏆','👟','🎽','🥅',  // fútbol / Leganés
+  '💶','💵','💰','📈','💳','💎','🏦','💸'          // dinero
+];
+const floaters = document.getElementById('floaters');
+function spawnFloater(){
+  const el = document.createElement('div');
+  el.className = 'floater';
+  el.textContent = EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
+  el.style.left = (Math.random()*95)+'%';
+  const dur = 7 + Math.random()*8;
+  el.style.animationDuration = dur+'s';
+  el.style.animationDelay = '0s';
+  el.style.fontSize = (18+Math.random()*20)+'px';
+  floaters.appendChild(el);
+  setTimeout(()=>el.remove(), dur*1000+500);
 }
-spawnFloats('fi-finanzas',finEmojis);
-spawnFloats('fi-futbol',futEmojis);
+// Lanzar varios al inicio y luego cada poco
+for(let i=0;i<12;i++) setTimeout(spawnFloater, i*400);
+setInterval(spawnFloater, 600);
 
 // ── Partículas de fondo ──
 const canvas=document.getElementById('particles');
 const ctx=canvas.getContext('2d');
 let W,H,pts=[];
-function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}
-resize(); window.addEventListener('resize',resize);
-for(let i=0;i<80;i++) pts.push({
-  x:Math.random()*2000,y:Math.random()*2000,
-  vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,
-  r:Math.random()*1.5+.5,a:Math.random()
+function resize(){
+  W=canvas.width=innerWidth;
+  H=canvas.height=innerHeight;
+}
+resize();window.addEventListener('resize',resize);
+for(let i=0;i<60;i++) pts.push({
+  x:Math.random()*3000,y:Math.random()*2000,
+  vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25,
+  r:Math.random()*1.2+.3,a:Math.random()*0.6+0.2
 });
-function drawParticles(){
+function drawP(){
   ctx.clearRect(0,0,W,H);
   pts.forEach(p=>{
     p.x+=p.vx;p.y+=p.vy;
     if(p.x<0)p.x=W;if(p.x>W)p.x=0;
     if(p.y<0)p.y=H;if(p.y>H)p.y=0;
     ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-    ctx.fillStyle=`rgba(79,142,247,${p.a*0.4})`;ctx.fill();
+    ctx.fillStyle=`rgba(79,142,247,${p.a*0.25})`;ctx.fill();
   });
-  // Líneas entre partículas cercanas
-  for(let i=0;i<pts.length;i++) for(let j=i+1;j<pts.length;j++){
-    const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y;
-    const d=Math.sqrt(dx*dx+dy*dy);
-    if(d<120){
-      ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);
-      ctx.strokeStyle=`rgba(79,142,247,${(1-d/120)*0.08})`;ctx.lineWidth=.5;ctx.stroke();
-    }
-  }
-  requestAnimationFrame(drawParticles);
+  requestAnimationFrame(drawP);
 }
-drawParticles();
+drawP();
 </script>
 </body>
 </html>
