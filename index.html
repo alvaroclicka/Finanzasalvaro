@@ -3,1098 +3,198 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mis Finanzas</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0f1117">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Finanzas">
-<link rel="apple-touch-icon" href="icon-192.png">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<title>Mi Portal</title>
 <style>
-:root {
-  --bg:#0f1117; --surface:#181c27; --surface2:#1f2435; --border:#2a3050;
-  --accent:#4f8ef7; --green:#2ecc8a; --red:#e85d6b; --text:#e8ecf5; --muted:#6b7599;
-  --font:'Segoe UI',system-ui,-apple-system,sans-serif;
-}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;min-height:100vh}
-
-/* NAV */
-nav{display:flex;align-items:center;background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:54px;position:sticky;top:0;z-index:100}
-.nav-logo{font-size:17px;font-weight:700;color:var(--accent);letter-spacing:-.5px;margin-right:24px;white-space:nowrap}
-.nav-logo span{color:var(--text)}
-.nav-tabs{display:flex;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none;min-width:0}
-.nav-tabs::-webkit-scrollbar{display:none}
-.nav-tab{padding:7px 15px;border-radius:8px;cursor:pointer;color:var(--muted);font-weight:500;transition:all .15s;border:none;background:none;font-size:13px;white-space:nowrap}
-.nav-tab:hover{color:var(--text);background:var(--surface2)}
-.nav-tab.active{color:var(--accent);background:rgba(79,142,247,.12)}
-
-/* LAYOUT */
-.container{max-width:1300px;margin:0 auto;padding:20px}
-.section{display:none}
-.section.active{display:block}
-
-/* CARDS */
-.summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
-.summary-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 22px}
-.summary-card .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
-.summary-card .amount{font-size:26px;font-weight:700;letter-spacing:-1px}
-.amount.income{color:var(--green)}
-.amount.expense{color:var(--red)}
-.summary-card .sub{font-size:11px;color:var(--muted);margin-top:3px}
-
-/* FILTROS */
-.filters{display:flex;gap:10px;margin-bottom:16px;align-items:center;flex-wrap:wrap}
-.filter-group{display:flex;align-items:center;gap:8px}
-.filter-label{font-size:12px;color:var(--muted);white-space:nowrap}
-select,input[type=text],input[type=date],input[type=number]{
-  background:var(--surface);border:1px solid var(--border);color:var(--text);
-  padding:7px 11px;border-radius:8px;font-size:13px;font-family:var(--font);
-  outline:none;transition:border-color .15s}
-select:focus,input:focus{border-color:var(--accent)}
-option{background:var(--surface2)}
-
-/* TIPO TOGGLE */
-.tipo-toggle{display:flex;gap:3px;background:var(--surface2);border-radius:8px;padding:3px}
-.tipo-btn{padding:6px 13px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-weight:500;color:var(--muted);background:none;transition:all .15s}
-.tipo-btn.active-all,.tipo-btn.active-income,.tipo-btn.active-expense{color:#fff}
-.tipo-btn.active-all{background:var(--accent)}
-.tipo-btn.active-income{background:var(--green)}
-.tipo-btn.active-expense{background:var(--red)}
-
-/* TABLA */
-.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
-.table-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
-.table-title{font-weight:600;font-size:15px}
-.table-count{font-size:12px;color:var(--muted)}
-table{width:100%;border-collapse:collapse}
-thead th{padding:9px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);border-bottom:1px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap}
-thead th:hover{color:var(--text)}
-thead th.sort-asc::after{content:' ↑';color:var(--accent)}
-thead th.sort-desc::after{content:' ↓';color:var(--accent)}
-tbody tr{border-bottom:1px solid rgba(42,48,80,.4);transition:background .1s}
-tbody tr:last-child{border-bottom:none}
-tbody tr:hover{background:var(--surface2)}
-td{padding:10px 14px}
-.td-fecha{color:var(--muted);font-size:12px;white-space:nowrap}
-.td-nombre{font-weight:500;max-width:300px;font-size:13px}
-.td-importe{font-weight:700;text-align:right;white-space:nowrap;font-size:14px}
-.td-importe.gasto{color:var(--red)}
-.td-importe.ingreso{color:var(--green)}
-.td-tipo{font-size:11px;text-align:center}
-.badge-gasto{background:rgba(232,93,107,.15);color:var(--red);padding:2px 8px;border-radius:4px}
-.badge-ingreso{background:rgba(46,204,138,.15);color:var(--green);padding:2px 8px;border-radius:4px}
-.badge-manual{background:rgba(79,142,247,.2);color:var(--accent);padding:1px 5px;border-radius:3px;font-size:10px;margin-right:5px}
-
-/* PAGINACIÓN */
-.pagination{display:flex;align-items:center;justify-content:center;gap:6px;padding:14px}
-.page-btn{padding:5px 11px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;font-size:12px;transition:all .15s}
-.page-btn:hover{border-color:var(--accent);color:var(--accent)}
-.page-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
-.page-btn:disabled{opacity:.3;cursor:not-allowed}
-
-/* MESES */
-.months-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-bottom:20px}
-.month-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;transition:all .15s}
-.month-card:hover{border-color:var(--accent)}
-.month-card.active{border-color:var(--accent);background:rgba(79,142,247,.07)}
-.month-card .month-name{font-weight:600;margin-bottom:8px;font-size:14px}
-.month-card .month-row{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px}
-.month-card .month-row .label{color:var(--muted)}
-.month-card .month-balance{font-size:12px;font-weight:700;margin-top:7px;padding-top:7px;border-top:1px solid var(--border);display:flex;justify-content:space-between}
-
-/* AÑADIR */
-.add-form{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:20px}
-.add-form h3{font-size:15px;font-weight:600;margin-bottom:18px}
-.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
-.form-field{display:flex;flex-direction:column;gap:5px}
-.form-field label{font-size:11px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.6px}
-.form-field input,.form-field select{width:100%}
-.btn-add{margin-top:18px;padding:10px 26px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s}
-.btn-add:hover{opacity:.85}
-.tipo-select{display:flex;gap:8px}
-.tipo-radio{display:none}
-.tipo-radio+label{padding:7px 18px;border-radius:8px;border:1px solid var(--border);cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);transition:all .15s;flex:1;text-align:center}
-.tipo-radio:checked+label{border-color:var(--accent);color:var(--text);background:rgba(79,142,247,.1)}
-
-/* DAY GROUPS */
-.day-list{display:flex;flex-direction:column;gap:6px}
-.day-group{background:var(--surface);border:1px solid var(--border);border-radius:9px;overflow:hidden}
-.day-group-header{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;cursor:pointer;font-size:13px}
-.day-group-header:hover{background:rgba(255,255,255,.03)}
-.day-transactions{display:none}
-.day-transactions.open{display:block}
-.day-tx{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-top:1px solid var(--border)}
-.day-tx-nombre{font-size:13px;font-weight:500}
-
-/* GRÁFICOS */
-.graf-controls{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
-.graf-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
-.graf-wide{grid-column:1/-1}
-.graf-block{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 18px 14px}
-.graf-title{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px}
-.graf-sub{font-size:11px;color:var(--accent);font-weight:400;text-transform:none;letter-spacing:0;margin-left:6px}
-canvas{max-width:100%}
-
-/* MODAL */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center}
-.modal-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:26px;width:500px;max-width:95vw}
-.modal-box h3{font-size:15px;font-weight:700;margin-bottom:18px}
-.modal-actions{display:flex;gap:8px;margin-top:20px;justify-content:flex-end}
-.btn-cancel{padding:9px 20px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;font-size:13px}
-.btn-save{padding:9px 22px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-weight:600;cursor:pointer;font-size:13px}
-
-/* TOAST */
-.toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:#fff;padding:11px 18px;border-radius:8px;font-weight:500;font-size:13px;z-index:999;opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none}
-.toast.show{opacity:1;transform:translateY(0)}
-.toast.error{background:var(--red)}
-
-/* MOBILE */
-@media(max-width:768px){
-  nav{padding:0 12px;height:50px}
-  .nav-logo{font-size:14px;margin-right:10px}
-  .container{padding:12px}
-  .summary-grid{grid-template-columns:1fr;gap:8px}
-  .summary-card .amount{font-size:22px}
-  .filters{flex-direction:column;align-items:stretch;gap:8px}
-  .filter-group{flex-wrap:wrap}
-  .filter-group select,.filter-group input{flex:1;min-width:0}
-  .tipo-toggle{justify-content:stretch}
-  .tipo-btn{flex:1;text-align:center;font-size:11px;padding:5px 4px}
-  table{font-size:12px}
-  thead th{padding:7px 9px;font-size:10px}
-  td{padding:8px 9px}
-  .td-nombre{max-width:150px}
-  th:last-child,td:last-child{display:none}
-  .months-grid{grid-template-columns:repeat(2,1fr);gap:8px}
-  .month-card{padding:11px}
-  .month-card .month-name{font-size:13px}
-  .form-grid{grid-template-columns:1fr}
-  .graf-controls{flex-direction:column;align-items:stretch}
-  .graf-row{grid-template-columns:1fr}
-  .graf-wide{grid-column:1}
-  .modal-box .form-grid{grid-template-columns:1fr!important}
-  #rs-top-gastos > div > div:first-child{flex:0 0 90px!important;font-size:11px!important}
-  #rs-top-gastos > div > div:last-child{flex:0 0 60px!important;font-size:12px!important}
-  #nav-clock{font-size:10px!important;margin-left:6px!important}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  min-height:100vh;
+  background:#080c14;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  overflow:hidden;
+  position:relative;
 }
-@media(max-width:400px){
-  .summary-card .amount{font-size:20px}
-  .months-grid{grid-template-columns:1fr}
+
+/* Fondo animado con partículas */
+.bg-particles{position:fixed;inset:0;z-index:0;pointer-events:none}
+canvas#particles{position:absolute;inset:0;width:100%;height:100%}
+
+/* Contenido */
+.portal{position:relative;z-index:10;text-align:center;padding:24px}
+.portal-title{
+  font-size:clamp(28px,6vw,52px);font-weight:900;letter-spacing:-2px;
+  color:#fff;margin-bottom:8px;
+  text-shadow:0 0 40px rgba(79,142,247,0.4);
+}
+.portal-sub{font-size:clamp(13px,2vw,16px);color:#6b7599;margin-bottom:48px;letter-spacing:.5px}
+
+/* Cards */
+.cards{display:flex;gap:24px;flex-wrap:wrap;justify-content:center}
+.card{
+  position:relative;width:280px;height:340px;border-radius:24px;
+  cursor:pointer;overflow:hidden;border:1px solid rgba(255,255,255,0.08);
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1), box-shadow .3s;
+  text-decoration:none;display:block;
+}
+.card:hover{transform:translateY(-12px) scale(1.02);box-shadow:0 30px 60px rgba(0,0,0,0.5)}
+.card-bg{position:absolute;inset:0;transition:transform .5s}
+.card:hover .card-bg{transform:scale(1.08)}
+
+/* Card Finanzas */
+.card-finanzas .card-bg{background:linear-gradient(145deg,#0d1f3c 0%,#1a3a6e 50%,#0d2d5e 100%)}
+.card-finanzas::before{
+  content:'';position:absolute;inset:0;z-index:1;
+  background:radial-gradient(circle at 30% 70%, rgba(79,142,247,0.25) 0%, transparent 60%);
+}
+
+/* Card Fútbol */
+.card-futbol .card-bg{background:linear-gradient(145deg,#0d2010 0%,#1a4a20 50%,#0d3010 100%)}
+.card-futbol::before{
+  content:'';position:absolute;inset:0;z-index:1;
+  background:radial-gradient(circle at 70% 30%, rgba(46,204,138,0.25) 0%, transparent 60%);
+}
+
+.card-content{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;gap:16px}
+.card-icon{font-size:72px;line-height:1;filter:drop-shadow(0 4px 16px rgba(0,0,0,0.4));transition:transform .3s}
+.card:hover .card-icon{transform:scale(1.15) rotate(-5deg)}
+.card-name{font-size:22px;font-weight:800;color:#fff;letter-spacing:-.5px}
+.card-desc{font-size:13px;color:rgba(255,255,255,0.55);text-align:center;line-height:1.5}
+.card-arrow{
+  margin-top:8px;width:40px;height:40px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+  transition:all .3s;
+}
+.card-finanzas .card-arrow{background:rgba(79,142,247,0.2);color:#4f8ef7}
+.card-futbol .card-arrow{background:rgba(46,204,138,0.2);color:#2ecc8a}
+.card:hover .card-arrow{transform:translateX(6px)}
+
+/* Animación flotante de iconos de fondo */
+.float-icons{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.fi{position:absolute;font-size:28px;opacity:0.06;animation:floatUp linear infinite}
+@keyframes floatUp{
+  0%{transform:translateY(110%) rotate(0deg);opacity:0}
+  10%{opacity:0.06}
+  90%{opacity:0.06}
+  100%{transform:translateY(-110%) rotate(360deg);opacity:0}
+}
+
+/* Hora */
+#portal-clock{
+  position:fixed;top:20px;right:24px;
+  font-size:13px;color:#4b5680;font-variant-numeric:tabular-nums;z-index:20;
+}
+
+@media(max-width:640px){
+  .cards{flex-direction:column;align-items:center}
+  .card{width:85vw;height:280px}
+  .card-icon{font-size:56px}
 }
 </style>
 </head>
 <body>
 
-<nav>
-  <div class="nav-tabs">
-    <button class="nav-tab active" onclick="showSection('resumen',this)">Resumen</button>
-    <button class="nav-tab" onclick="showSection('movimientos',this)">Movimientos</button>
-    <button class="nav-tab" onclick="showSection('mensual',this)">Por Mes</button>
-    <button class="nav-tab" onclick="showSection('graficos',this)">Gráficos</button>
-    <button class="nav-tab" onclick="showSection('añadir',this)">+ Añadir</button>
-  </div>
-  <div id="nav-clock" style="font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;margin-left:12px"></div>
-</nav>
+<div id="portal-clock"></div>
 
-<div class="container">
+<canvas id="particles"></canvas>
 
-<!-- ── RESUMEN ── -->
-<div class="section active" id="sec-resumen">
-  <div id="saldo-hero" style="margin-bottom:18px"></div>
-  <div class="filters" style="margin-bottom:14px">
-    <div class="filter-group">
-      <div class="filter-label">Año:</div>
-      <select id="res-year" onchange="renderResumen()"></select>
-    </div>
-    <div class="filter-group">
-      <div class="filter-label">Mes:</div>
-      <select id="res-month" onchange="renderResumen()">
-        <option value="">Todos</option>
-        <option value="1">Enero</option><option value="2">Febrero</option>
-        <option value="3">Marzo</option><option value="4">Abril</option>
-        <option value="5">Mayo</option><option value="6">Junio</option>
-        <option value="7">Julio</option><option value="8">Agosto</option>
-        <option value="9">Septiembre</option><option value="10">Octubre</option>
-        <option value="11">Noviembre</option><option value="12">Diciembre</option>
-      </select>
-    </div>
-  </div>
-  <div class="summary-grid" id="summary-cards"></div>
+<div class="portal">
+  <div class="portal-title">Mi Portal</div>
+  <div class="portal-sub">Elige una sección para empezar</div>
 
-  <div class="graf-row" style="margin-top:18px">
-    <div class="graf-block graf-wide">
-      <div class="graf-title">Evolución del saldo · mes a mes <span class="graf-sub" id="rs-evol-anio"></span></div>
-      <canvas id="ch-resumen-evol" height="70"></canvas>
-    </div>
-  </div>
-
-  <div class="graf-row">
-    <div class="graf-block graf-wide">
-      <div class="graf-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-        <span>Mayores gastos</span>
-        <div style="display:flex;gap:8px">
-          <select id="rs-top-month" onchange="renderResumenExtras()" style="font-size:12px;padding:5px 9px">
-            <option value="1">Enero</option><option value="2">Febrero</option>
-            <option value="3">Marzo</option><option value="4">Abril</option>
-            <option value="5">Mayo</option><option value="6">Junio</option>
-            <option value="7">Julio</option><option value="8">Agosto</option>
-            <option value="9">Septiembre</option><option value="10">Octubre</option>
-            <option value="11">Noviembre</option><option value="12">Diciembre</option>
-          </select>
-          <select id="rs-top-year" onchange="renderResumenExtras()" style="font-size:12px;padding:5px 9px"></select>
-        </div>
+  <div class="cards">
+    <!-- Finanzas -->
+    <a class="card card-finanzas" href="finanzas/index.html">
+      <div class="card-bg"></div>
+      <div class="float-icons" id="fi-finanzas"></div>
+      <div class="card-content">
+        <div class="card-icon">💳</div>
+        <div class="card-name">Finanzas</div>
+        <div class="card-desc">Saldo, movimientos, gráficos y control de tus gastos e ingresos</div>
+        <div class="card-arrow">→</div>
       </div>
-      <div id="rs-top-gastos" style="display:flex;flex-direction:column;gap:8px;margin-top:4px"></div>
-    </div>
-  </div>
+    </a>
 
-  <div class="graf-row">
-    <div class="graf-block graf-wide">
-      <div class="graf-title">Últimos movimientos</div>
-      <div id="rs-ultimos" style="display:flex;flex-direction:column;gap:2px;margin-top:4px"></div>
-    </div>
+    <!-- Fútbol -->
+    <a class="card card-futbol" href="futbol/index.html">
+      <div class="card-bg"></div>
+      <div class="float-icons" id="fi-futbol"></div>
+      <div class="card-content">
+        <div class="card-icon">⚽</div>
+        <div class="card-name">Fútbol</div>
+        <div class="card-desc">Armario, partidos vistos y calendario completo del Leganés</div>
+        <div class="card-arrow">→</div>
+      </div>
+    </a>
   </div>
 </div>
-
-<!-- ── MOVIMIENTOS ── -->
-<div class="section" id="sec-movimientos">
-  <div class="filters">
-    <div class="filter-group">
-      <div class="filter-label">Buscar:</div>
-      <input type="text" id="search" placeholder="Buscar por nombre..." oninput="renderMovimientos()" style="width:210px">
-    </div>
-    <div class="filter-group">
-      <div class="filter-label">Mes:</div>
-      <select id="mov-month" onchange="renderMovimientos()">
-        <option value="">Todos</option>
-        <option value="1">Enero</option><option value="2">Febrero</option>
-        <option value="3">Marzo</option><option value="4">Abril</option>
-        <option value="5">Mayo</option><option value="6">Junio</option>
-        <option value="7">Julio</option><option value="8">Agosto</option>
-        <option value="9">Septiembre</option><option value="10">Octubre</option>
-        <option value="11">Noviembre</option><option value="12">Diciembre</option>
-      </select>
-    </div>
-    <div class="filter-group">
-      <div class="filter-label">Año:</div>
-      <select id="mov-year" onchange="renderMovimientos()">
-        <option value="">Todos</option>
-      </select>
-    </div>
-    <div class="tipo-toggle">
-      <button class="tipo-btn active-all" onclick="setTipo('all',this)">Todo</button>
-      <button class="tipo-btn" onclick="setTipo('income',this)">Ingresos</button>
-      <button class="tipo-btn" onclick="setTipo('expense',this)">Gastos</button>
-    </div>
-  </div>
-  <div class="table-wrap">
-    <div class="table-header">
-      <span class="table-title">Movimientos</span>
-      <span class="table-count" id="mov-count"></span>
-    </div>
-    <table>
-      <thead><tr>
-        <th onclick="sortTable('fecha')">Fecha</th>
-        <th onclick="sortTable('nombre')">Concepto</th>
-        <th onclick="sortTable('importe')" style="text-align:right">Importe</th>
-        <th>Tipo</th>
-      </tr></thead>
-      <tbody id="mov-tbody"></tbody>
-    </table>
-    <div class="pagination" id="pagination"></div>
-  </div>
-</div>
-
-<!-- ── POR MES ── -->
-<div class="section" id="sec-mensual">
-  <div class="filter-group" style="margin-bottom:18px">
-    <div class="filter-label">Año:</div>
-    <select id="mens-year" onchange="renderMensual()"></select>
-  </div>
-  <div class="months-grid" id="months-grid"></div>
-  <div id="month-detail"></div>
-</div>
-
-<!-- ── GRÁFICOS ── -->
-<div class="section" id="sec-graficos">
-  <div class="graf-controls">
-    <div class="filter-group">
-      <div class="filter-label">Año:</div>
-      <select id="graf-year" onchange="renderGraficos()"></select>
-    </div>
-    <div class="tipo-toggle">
-      <button class="tipo-btn active-all" onclick="setGrafView('all',this)">General</button>
-      <button class="tipo-btn" onclick="setGrafView('month',this)">Por mes</button>
-    </div>
-  </div>
-
-  <div id="graf-all">
-    <div class="graf-row">
-      <div class="graf-block graf-wide">
-        <div class="graf-title">Ingresos vs Gastos <span class="graf-sub" id="gt-general"></span></div>
-        <canvas id="ch-mensual"></canvas>
-      </div>
-    </div>
-    <div class="graf-row">
-      <div class="graf-block graf-wide">
-        <div class="graf-title">Balance mensual</div>
-        <canvas id="ch-balance"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <div id="graf-month" style="display:none">
-    <div class="filter-group" style="margin-bottom:14px">
-      <div class="filter-label">Mes:</div>
-      <select id="graf-month-sel" onchange="renderGrafMonth()">
-        <option value="1">Enero</option><option value="2">Febrero</option>
-        <option value="3">Marzo</option><option value="4">Abril</option>
-        <option value="5">Mayo</option><option value="6">Junio</option>
-        <option value="7">Julio</option><option value="8">Agosto</option>
-        <option value="9">Septiembre</option><option value="10">Octubre</option>
-        <option value="11">Noviembre</option><option value="12">Diciembre</option>
-      </select>
-    </div>
-    <div class="graf-row">
-      <div class="graf-block graf-wide">
-        <div class="graf-title">Gastos por día <span class="graf-sub" id="gt-month"></span></div>
-        <canvas id="ch-daily"></canvas>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<!-- ── AÑADIR ── -->
-<div class="section" id="sec-añadir">
-  <div class="add-form">
-    <h3>➕ Nueva transacción</h3>
-    <div class="form-grid">
-      <div class="form-field" style="grid-column:1/-1">
-        <label>Tipo</label>
-        <div class="tipo-select">
-          <input type="radio" name="new-tipo" id="r-gasto" value="Gasto (G)" class="tipo-radio" checked>
-          <label for="r-gasto">💸 Gasto</label>
-          <input type="radio" name="new-tipo" id="r-ingreso" value="Ingreso (I)" class="tipo-radio">
-          <label for="r-ingreso">💰 Ingreso</label>
-        </div>
-      </div>
-      <div class="form-field">
-        <label>Fecha</label>
-        <input type="date" id="new-fecha">
-      </div>
-      <div class="form-field">
-        <label>Concepto</label>
-        <input type="text" id="new-nombre" placeholder="Ej: Supermercado">
-      </div>
-      <div class="form-field">
-        <label>Importe (€)</label>
-        <input type="number" id="new-importe" placeholder="45.50" step="0.01" min="0">
-      </div>
-      <div class="form-field">
-        <label>Nota (opcional)</label>
-        <input type="text" id="new-nota" placeholder="Descripción adicional...">
-      </div>
-    </div>
-    <button class="btn-add" onclick="addTransaction()">Añadir transacción</button>
-  </div>
-
-  <!-- Copia de seguridad -->
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 22px;margin-bottom:20px">
-    <div style="font-size:13px;font-weight:600;margin-bottom:14px">💾 Copia de seguridad</div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-      <button onclick="exportarDatos()" style="padding:9px 20px;background:var(--accent);border:none;color:#fff;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">⬇ Exportar mis datos</button>
-      <label style="padding:9px 20px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">
-        ⬆ Importar datos
-        <input type="file" id="import-file" accept=".json" onchange="importarDatos(event)" style="display:none">
-      </label>
-      <span style="font-size:12px" id="backup-info"></span><span style="font-size:12px;margin-left:12px" id="sync-status"></span>
-    </div>
-  </div>
-  <div class="table-wrap" id="added-wrap" style="display:none">
-    <div class="table-header">
-      <span class="table-title">Añadidas manualmente</span>
-      <span class="table-count" id="added-count"></span>
-    </div>
-    <table>
-      <thead><tr>
-        <th>Fecha</th><th>Concepto</th>
-        <th style="text-align:right">Importe</th><th>Tipo</th><th></th>
-      </tr></thead>
-      <tbody id="added-tbody"></tbody>
-    </table>
-  </div>
-</div>
-
-</div><!-- /container -->
-
-<!-- MODAL EDITAR -->
-<div class="modal-overlay" id="edit-modal">
-  <div class="modal-box">
-    <h3>✏️ Editar transacción</h3>
-    <input type="hidden" id="edit-idx">
-    <div class="form-grid" style="grid-template-columns:1fr 1fr">
-      <div class="form-field" style="grid-column:1/-1">
-        <label>Tipo</label>
-        <div class="tipo-select">
-          <input type="radio" name="edit-tipo" id="er-gasto" value="Gasto (G)" class="tipo-radio">
-          <label for="er-gasto">💸 Gasto</label>
-          <input type="radio" name="edit-tipo" id="er-ingreso" value="Ingreso (I)" class="tipo-radio">
-          <label for="er-ingreso">💰 Ingreso</label>
-        </div>
-      </div>
-      <div class="form-field">
-        <label>Fecha</label>
-        <input type="date" id="edit-fecha" style="width:100%">
-      </div>
-      <div class="form-field">
-        <label>Importe (€)</label>
-        <input type="number" id="edit-importe" step="0.01" min="0" style="width:100%">
-      </div>
-      <div class="form-field" style="grid-column:1/-1">
-        <label>Concepto</label>
-        <input type="text" id="edit-nombre" style="width:100%">
-      </div>
-      <div class="form-field" style="grid-column:1/-1">
-        <label>Nota</label>
-        <input type="text" id="edit-nota" placeholder="Opcional..." style="width:100%">
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeEdit()">Cancelar</button>
-      <button class="btn-save" onclick="saveEdit()">Guardar</button>
-    </div>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
 
 <script>
-// ── DATOS ──
-const DATA_BANCO = [{"fecha": "29/06/2026", "nombre": "NOMINA (TRF)", "categoria": "Nómina / pensión / desempleo", "importe": 1222.1, "tipo": "Ingreso (I)"}, {"fecha": "29/06/2026", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -50.0, "tipo": "Gasto (G)"}, {"fecha": "29/06/2026", "nombre": "PayPal Europe S.a.r.l. et Cie S.C.A", "categoria": "Varios", "importe": -0.15, "tipo": "Gasto (G)"}, {"fecha": "28/06/2026", "nombre": "DGT SANCIONES INT", "categoria": "Varios", "importe": -50.0, "tipo": "Gasto (G)"}, {"fecha": "27/06/2026", "nombre": "EMPRESA MUNICIPAL EMT", "categoria": "Transporte", "importe": -1.5, "tipo": "Gasto (G)"}, {"fecha": "27/06/2026", "nombre": "MULTITIENDA 24 HORAS S.L.", "categoria": "Supers e hipers", "importe": -5.0, "tipo": "Gasto (G)"}, {"fecha": "27/06/2026", "nombre": "SumUp  *Sala decibelios s", "categoria": "Restaurantes", "importe": -24.0, "tipo": "Gasto (G)"}, {"fecha": "26/06/2026", "nombre": "NOMINA (TRF)", "categoria": "Nómina / pensión / desempleo", "importe": 831.22, "tipo": "Ingreso (I)"}, {"fecha": "26/06/2026", "nombre": "PayPal Europe S.a.r.l. et Cie S.C.A", "categoria": "Varios", "importe": -16.68, "tipo": "Gasto (G)"}, {"fecha": "25/06/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -7.0, "tipo": "Gasto (G)"}, {"fecha": "24/06/2026", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -0.8, "tipo": "Gasto (G)"}, {"fecha": "24/06/2026", "nombre": "Klarna*Airbnb", "categoria": "Varios", "importe": -81.37, "tipo": "Gasto (G)"}, {"fecha": "22/06/2026", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -1.6, "tipo": "Gasto (G)"}, {"fecha": "22/06/2026", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "22/06/2026", "nombre": "METRO DE MADRID S.A.", "categoria": "Transporte", "importe": -1.5, "tipo": "Gasto (G)"}, {"fecha": "20/06/2026", "nombre": "PRIMARK CONDE PENALVER", "categoria": "Ropa y calzado", "importe": -10.8, "tipo": "Gasto (G)"}, {"fecha": "20/06/2026", "nombre": "MIALCAMPO BENITO CASTRO", "categoria": "Supers e hipers", "importe": -1.95, "tipo": "Gasto (G)"}, {"fecha": "15/06/2026", "nombre": "FAB.NACION. DE MONEDA Y T", "categoria": "Servicios varios", "importe": -3.62, "tipo": "Gasto (G)"}, {"fecha": "15/06/2026", "nombre": "FAB.NACION. DE MONEDA Y T", "categoria": "Servicios varios", "importe": -3.62, "tipo": "Gasto (G)"}, {"fecha": "15/06/2026", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -15.4, "tipo": "Gasto (G)"}, {"fecha": "15/06/2026", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 57.0, "tipo": "Ingreso (I)"}, {"fecha": "14/06/2026", "nombre": "EMPRESA MUNICIPAL EMT", "categoria": "Transporte", "importe": -1.5, "tipo": "Gasto (G)"}, {"fecha": "14/06/2026", "nombre": "MULTITIENDA 24 HORAS S.L.", "categoria": "Supers e hipers", "importe": -2.5, "tipo": "Gasto (G)"}, {"fecha": "14/06/2026", "nombre": "FREEWAY", "categoria": "Restaurantes", "importe": -9.0, "tipo": "Gasto (G)"}, {"fecha": "13/06/2026", "nombre": "Hotel at Booking.com", "categoria": "Hoteles", "importe": -69.66, "tipo": "Gasto (G)"}, {"fecha": "13/06/2026", "nombre": "Hotel at Booking.com", "categoria": "Hoteles", "importe": -102.06, "tipo": "Gasto (G)"}, {"fecha": "13/06/2026", "nombre": "BARBER SHOP TRADICIONA", "categoria": "Bienestar y belleza", "importe": -9.0, "tipo": "Gasto (G)"}, {"fecha": "13/06/2026", "nombre": "BARES ANTIGUOS SL", "categoria": "Restaurantes", "importe": -4.0, "tipo": "Gasto (G)"}, {"fecha": "13/06/2026", "nombre": "TAXI LICENCIA 11909", "categoria": "Transporte", "importe": -8.85, "tipo": "Gasto (G)"}, {"fecha": "13/06/2026", "nombre": "Legends Hospitality ES", "categoria": "Restaurantes", "importe": -4.0, "tipo": "Gasto (G)"}, {"fecha": "12/06/2026", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -1.6, "tipo": "Gasto (G)"}, {"fecha": "12/06/2026", "nombre": "APPLE.COM/BILL", "categoria": "Ocio", "importe": -0.99, "tipo": "Gasto (G)"}, {"fecha": "10/06/2026", "nombre": "FARMACIA HERMOSILLA 130", "categoria": "Salud", "importe": -1.36, "tipo": "Gasto (G)"}, {"fecha": "09/06/2026", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -1.2, "tipo": "Gasto (G)"}, {"fecha": "08/06/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -14.0, "tipo": "Gasto (G)"}, {"fecha": "07/06/2026", "nombre": "ROYAL KEBAP", "categoria": "Restaurantes", "importe": -7.6, "tipo": "Gasto (G)"}, {"fecha": "07/06/2026", "nombre": "MARAVILLAS SPECTACLUB", "categoria": "Supers e hipers", "importe": -15.0, "tipo": "Gasto (G)"}, {"fecha": "06/06/2026", "nombre": "GESTION DE BARRAS 3 BCLEV", "categoria": "Restaurantes", "importe": -24.0, "tipo": "Gasto (G)"}, {"fecha": "06/06/2026", "nombre": "GESTION DE BARRAS 3 BCLEV", "categoria": "Restaurantes", "importe": -32.0, "tipo": "Gasto (G)"}, {"fecha": "06/06/2026", "nombre": "PLAYSTATION", "categoria": "Ocio", "importe": -9.99, "tipo": "Gasto (G)"}, {"fecha": "05/06/2026", "nombre": "MIALCAMPO BENITO CASTRO", "categoria": "Supers e hipers", "importe": -12.33, "tipo": "Gasto (G)"}, {"fecha": "04/06/2026", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -1.6, "tipo": "Gasto (G)"}, {"fecha": "03/06/2026", "nombre": "ALIMENTACION CUNYOU", "categoria": "Supers e hipers", "importe": -1.8, "tipo": "Gasto (G)"}, {"fecha": "03/06/2026", "nombre": "EL CORTE INGLES-DEPARTAM.", "categoria": "El Corte Inglés", "importe": -22.7, "tipo": "Gasto (G)"}, {"fecha": "02/06/2026", "nombre": "APPLE.COM/BILL", "categoria": "Ocio", "importe": -2.99, "tipo": "Gasto (G)"}, {"fecha": "01/06/2026", "nombre": "ASOCIACION ESCP", "categoria": "Educación", "importe": -0.8, "tipo": "Gasto (G)"}, {"fecha": "31/05/2026", "nombre": "LOOMISP*Estadio Butarq", "categoria": "Restaurantes", "importe": -6.0, "tipo": "Gasto (G)"}, {"fecha": "31/05/2026", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -40.0, "tipo": "Gasto (G)"}, {"fecha": "31/05/2026", "nombre": "MULTITIENDA 24 HORAS S L", "categoria": "Supers e hipers", "importe": -1.8, "tipo": "Gasto (G)"}, {"fecha": "31/05/2026", "nombre": "Sala decibelios s.l", "categoria": "Restaurantes", "importe": -9.0, "tipo": "Gasto (G)"}, {"fecha": "31/05/2026", "nombre": "Sala decibelios s.l", "categoria": "Restaurantes", "importe": -12.0, "tipo": "Gasto (G)"}, {"fecha": "31/05/2026", "nombre": "TAXI 02758", "categoria": "Transporte", "importe": -7.85, "tipo": "Gasto (G)"}, {"fecha": "31/05/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -18.0, "tipo": "Gasto (G)"}, {"fecha": "30/05/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -13.0, "tipo": "Gasto (G)"}, {"fecha": "29/05/2026", "nombre": "APPLE.COM/BILL", "categoria": "Ocio", "importe": -0.99, "tipo": "Gasto (G)"}, {"fecha": "29/05/2026", "nombre": "ENTRADAS SPORT", "categoria": "Ocio", "importe": -33.0, "tipo": "Gasto (G)"}, {"fecha": "29/05/2026", "nombre": "CAJ.LA CAIXA      OF.1744", "categoria": "Dinero del cajero", "importe": -100.0, "tipo": "Gasto (G)"}, {"fecha": "28/05/2026", "nombre": "Telpark", "categoria": "Transporte", "importe": -0.92, "tipo": "Gasto (G)"}, {"fecha": "28/05/2026", "nombre": "SP CD LEGANES ONLINE", "categoria": "Ropa y calzado", "importe": -34.99, "tipo": "Gasto (G)"}, {"fecha": "28/05/2026", "nombre": "MIALCAMPO BENITO CASTRO", "categoria": "Supers e hipers", "importe": -2.25, "tipo": "Gasto (G)"}, {"fecha": "28/05/2026", "nombre": "NOMINA (TRF)", "categoria": "Nómina / pensión / desempleo", "importe": 1224.88, "tipo": "Ingreso (I)"}, {"fecha": "27/05/2026", "nombre": "ENTRADAS SPORT", "categoria": "Ocio", "importe": -7.5, "tipo": "Gasto (G)"}, {"fecha": "27/05/2026", "nombre": "PayPal Europe S.a.r.l. et Cie S.C.A", "categoria": "Varios", "importe": -16.68, "tipo": "Gasto (G)"}, {"fecha": "26/05/2026", "nombre": "Warner Bros. Studios", "categoria": "Ocio", "importe": -135.65, "tipo": "Gasto (G)"}, {"fecha": "25/05/2026", "nombre": "Klarna*Airbnb", "categoria": "Varios", "importe": -81.36, "tipo": "Gasto (G)"}, {"fecha": "24/05/2026", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -59.53, "tipo": "Gasto (G)"}, {"fecha": "23/05/2026", "nombre": "CAJ.LA CAIXA      OF.6203", "categoria": "Dinero del cajero", "importe": -50.0, "tipo": "Gasto (G)"}, {"fecha": "22/05/2026", "nombre": "WOODY", "categoria": "Ocio", "importe": -14.7, "tipo": "Gasto (G)"}, {"fecha": "22/05/2026", "nombre": "EL ALFOZ DE BURGOS S L", "categoria": "Restaurantes", "importe": -8.5, "tipo": "Gasto (G)"}, {"fecha": "22/05/2026", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -46.9, "tipo": "Gasto (G)"}, {"fecha": "20/05/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -50.0, "tipo": "Gasto (G)"}, {"fecha": "19/05/2026", "nombre": "ALIMENTACION CUNYOU", "categoria": "Supers e hipers", "importe": -1.0, "tipo": "Gasto (G)"}, {"fecha": "19/05/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -18.5, "tipo": "Gasto (G)"}, {"fecha": "18/05/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -15.0, "tipo": "Gasto (G)"}, {"fecha": "16/05/2026", "nombre": "MULTITIENDA 24 HORAS S L", "categoria": "Supers e hipers", "importe": -5.0, "tipo": "Gasto (G)"}, {"fecha": "16/05/2026", "nombre": "Sala decibelios s.l", "categoria": "Restaurantes", "importe": -12.0, "tipo": "Gasto (G)"}, {"fecha": "16/05/2026", "nombre": "UBR* PENDING.UBER.COM", "categoria": "Transporte", "importe": -5.0, "tipo": "Gasto (G)"}, {"fecha": "16/05/2026", "nombre": "EL CHAPANDAZ", "categoria": "Restaurantes", "importe": -8.0, "tipo": "Gasto (G)"}, {"fecha": "16/05/2026", "nombre": "ALIMENTACION WU", "categoria": "Supers e hipers", "importe": -4.1, "tipo": "Gasto (G)"}, {"fecha": "15/05/2026", "nombre": "STUDIO LOPEZ 29", "categoria": "Ocio", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "15/05/2026", "nombre": "UBR* PENDING.UBER.COM", "categoria": "Transporte", "importe": -12.98, "tipo": "Gasto (G)"}, {"fecha": "14/05/2026", "nombre": "BARBER SHOP TRADICIONA", "categoria": "Bienestar y belleza", "importe": -9.0, "tipo": "Gasto (G)"}, {"fecha": "13/05/2026", "nombre": "R.P. -14 16 TORRE RIOJA M", "categoria": "Transporte", "importe": -9.35, "tipo": "Gasto (G)"}, {"fecha": "13/05/2026", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -40.0, "tipo": "Gasto (G)"}, {"fecha": "13/05/2026", "nombre": "WAYLET", "categoria": "Ocio", "importe": -37.74, "tipo": "Gasto (G)"}, {"fecha": "12/05/2026", "nombre": "APPLE.COM/BILL", "categoria": "Ocio", "importe": -0.99, "tipo": "Gasto (G)"}, {"fecha": "12/05/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -110.0, "tipo": "Gasto (G)"}, {"fecha": "12/05/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -110.0, "tipo": "Gasto (G)"}, {"fecha": "11/05/2026", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 5.0, "tipo": "Ingreso (I)"}, {"fecha": "11/05/2026", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 5.0, "tipo": "Ingreso (I)"}, {"fecha": "11/05/2026", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 9.0, "tipo": "Ingreso (I)"}, {"fecha": "11/05/2026", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 9.0, "tipo": "Ingreso (I)"}, {"fecha": "10/05/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -7.0, "tipo": "Gasto (G)"}, {"fecha": "10/05/2026", "nombre": "ALIMENTACION CUNYOU", "categoria": "Supers e hipers", "importe": -1.8, "tipo": "Gasto (G)"}, {"fecha": "08/05/2026", "nombre": "MIALCAMPO BENITO CASTRO", "categoria": "Supers e hipers", "importe": -2.61, "tipo": "Gasto (G)"}, {"fecha": "07/05/2026", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "06/05/2026", "nombre": "ALIMENTACION CUNYOU", "categoria": "Supers e hipers", "importe": -1.8, "tipo": "Gasto (G)"}, {"fecha": "04/05/2026", "nombre": "MIALCAMPO BENITO CASTRO", "categoria": "Supers e hipers", "importe": -4.07, "tipo": "Gasto (G)"}, {"fecha": "04/05/2026", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 8.0, "tipo": "Ingreso (I)"}, {"fecha": "04/05/2026", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 95.0, "tipo": "Ingreso (I)"}, {"fecha": "04/05/2026", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 95.0, "tipo": "Ingreso (I)"}, {"fecha": "02/05/2026", "nombre": "PLAYSTATION", "categoria": "Ocio", "importe": -8.99, "tipo": "Gasto (G)"}, {"fecha": "02/05/2026", "nombre": "APPLE.COM/BILL", "categoria": "Ocio", "importe": -2.99, "tipo": "Gasto (G)"}, {"fecha": "01/05/2026", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 254.5, "tipo": "Ingreso (I)"}, {"fecha": "01/05/2026", "nombre": "KIWI.COM", "categoria": "Viaje", "importe": -194.0, "tipo": "Gasto (G)"}, {"fecha": "30/04/2026", "nombre": "LOS TORREZNOS", "categoria": "Restaurantes", "importe": -30.3, "tipo": "Gasto (G)"}, {"fecha": "30/04/2026", "nombre": "Telpark", "categoria": "Transporte", "importe": -1.32, "tipo": "Gasto (G)"}, {"fecha": "29/04/2026", "nombre": "APPLE.COM/BILL", "categoria": "Ocio", "importe": -0.99, "tipo": "Gasto (G)"}, {"fecha": "29/04/2026", "nombre": "AYTO MADRID PAGO INTERNET", "categoria": "Impuestos y multas", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "29/04/2026", "nombre": "AYTO MADRID PAGO INTERNET", "categoria": "Impuestos y multas", "importe": -59.0, "tipo": "Gasto (G)"}, {"fecha": "28/04/2026", "nombre": "SquareTradeCopay", "categoria": "Seguros y mutuas", "importe": -99.0, "tipo": "Gasto (G)"}, {"fecha": "28/04/2026", "nombre": "NOMINA (TRF)", "categoria": "Nómina / pensión / desempleo", "importe": 1302.99, "tipo": "Ingreso (I)"}, {"fecha": "28/04/2026", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -17.88, "tipo": "Gasto (G)"}, {"fecha": "27/04/2026", "nombre": "UKVI ETAMOB00001257872", "categoria": "Servicios varios", "importe": -23.88, "tipo": "Gasto (G)"}, {"fecha": "26/04/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -40.0, "tipo": "Gasto (G)"}, {"fecha": "26/04/2026", "nombre": "KARAOKE", "categoria": "Ocio", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "25/04/2026", "nombre": "Klarna*Airbnb EU", "categoria": "Varios", "importe": -81.36, "tipo": "Gasto (G)"}, {"fecha": "25/04/2026", "nombre": "UBR* PENDING.UBER.COM", "categoria": "Transporte", "importe": -8.96, "tipo": "Gasto (G)"}, {"fecha": "24/04/2026", "nombre": "Telpark", "categoria": "Transporte", "importe": -0.81, "tipo": "Gasto (G)"}, {"fecha": "24/04/2026", "nombre": "DNI/PASAPORTE MADRID CIUD", "categoria": "Servicios varios", "importe": -30.0, "tipo": "Gasto (G)"}, {"fecha": "24/04/2026", "nombre": "MIALCAMPO BENITO CASTRO", "categoria": "Supers e hipers", "importe": -1.23, "tipo": "Gasto (G)"}, {"fecha": "24/04/2026", "nombre": "FOTO ROMA", "categoria": "Electrónica y electrodomésticos", "importe": -6.0, "tipo": "Gasto (G)"}, {"fecha": "24/04/2026", "nombre": "KIWI.COM", "categoria": "Viaje", "importe": -71.24, "tipo": "Gasto (G)"}, {"fecha": "19/04/2026", "nombre": "RESTAURANTE PUERTO MAIOR", "categoria": "Restaurantes", "importe": -5.2, "tipo": "Gasto (G)"}, {"fecha": "19/04/2026", "nombre": "PLENERGY US 106 MADRID V", "categoria": "Transporte", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "19/04/2026", "nombre": "LOS TORREZNOS -GOYA-", "categoria": "Restaurantes", "importe": -14.6, "tipo": "Gasto (G)"}, {"fecha": "18/04/2026", "nombre": "MOEVE VELILLA DE SAN A", "categoria": "Transporte", "importe": -21.0, "tipo": "Gasto (G)"}, {"fecha": "17/04/2026", "nombre": "MC DONALDS RIVAS", "categoria": "Restaurantes", "importe": -20.3, "tipo": "Gasto (G)"}, {"fecha": "17/04/2026", "nombre": "CLAUDE.AI SUBSCRIPTION", "categoria": "Electrónica y electrodomésticos", "importe": -21.78, "tipo": "Gasto (G)"}, {"fecha": "17/04/2026", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "16/04/2026", "nombre": "MIALCAMPO BENITO CASTRO", "categoria": "Supers e hipers", "importe": -2.26, "tipo": "Gasto (G)"}, {"fecha": "16/04/2026", "nombre": "MIALCAMPO BENITO CASTRO", "categoria": "Supers e hipers", "importe": -4.53, "tipo": "Gasto (G)"}, {"fecha": "16/04/2026", "nombre": "BET365", "categoria": "Ocio", "importe": -5.0, "tipo": "Gasto (G)"}, {"fecha": "14/04/2026", "nombre": "POLIZA P1N0301723", "categoria": "Electrónica y electrodomésticos", "importe": -19.19, "tipo": "Gasto (G)"}, {"fecha": "13/04/2026", "nombre": "WWW.AMAZON* NW8J59ZE4", "categoria": "Varios", "importe": -18.98, "tipo": "Gasto (G)"}, {"fecha": "12/04/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -72.0, "tipo": "Gasto (G)"}, {"fecha": "12/04/2026", "nombre": "LOS TORREZNOS -GOYA-", "categoria": "Restaurantes", "importe": -18.7, "tipo": "Gasto (G)"}, {"fecha": "12/04/2026", "nombre": "APPLE.COM/BILL", "categoria": "Ocio", "importe": -0.99, "tipo": "Gasto (G)"}, {"fecha": "12/04/2026", "nombre": "UBR* PENDING.UBER.COM", "categoria": "Transporte", "importe": -14.95, "tipo": "Gasto (G)"}, {"fecha": "11/04/2026", "nombre": "UBR* PENDING.UBER.COM", "categoria": "Transporte", "importe": -5.0, "tipo": "Gasto (G)"}, {"fecha": "11/04/2026", "nombre": "UBR* PENDING.UBER.COM", "categoria": "Transporte", "importe": -5.0, "tipo": "Gasto (G)"}, {"fecha": "11/04/2026", "nombre": "LOOMISP*Estadio Butarq", "categoria": "Restaurantes", "importe": -7.0, "tipo": "Gasto (G)"}, {"fecha": "11/04/2026", "nombre": "LOOMISP*Estadio Butarq", "categoria": "Restaurantes", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "11/04/2026", "nombre": "LOOMISP*Estadio Butarq", "categoria": "Restaurantes", "importe": -18.0, "tipo": "Gasto (G)"}, {"fecha": "11/04/2026", "nombre": "CIRCULO GRANJE#O", "categoria": "Restaurantes", "importe": -14.0, "tipo": "Gasto (G)"}, {"fecha": "11/04/2026", "nombre": "BAR STEFANY", "categoria": "Restaurantes", "importe": -3.5, "tipo": "Gasto (G)"}, {"fecha": "11/04/2026", "nombre": "ALIMENTACION CUNYOU", "categoria": "Supers e hipers", "importe": -7.5, "tipo": "Gasto (G)"}, {"fecha": "11/04/2026", "nombre": "UBR* PENDING.UBER.COM", "categoria": "Transporte", "importe": -13.96, "tipo": "Gasto (G)"}, {"fecha": "11/04/2026", "nombre": "UBR* PENDING.UBER.COM", "categoria": "Transporte", "importe": -15.91, "tipo": "Gasto (G)"}, {"fecha": "10/04/2026", "nombre": "INGRESO CAJERO", "categoria": "Ingresos de efectivo/cheques", "importe": 30.0, "tipo": "Ingreso (I)"}, {"fecha": "09/04/2026", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -17.92, "tipo": "Gasto (G)"}, {"fecha": "07/04/2026", "nombre": "WWW.AMAZON* NI7X17ZE4", "categoria": "Varios", "importe": -29.99, "tipo": "Gasto (G)"}, {"fecha": "07/04/2026", "nombre": "MGP*Wallapop S L", "categoria": "Varios", "importe": -28.03, "tipo": "Gasto (G)"}, {"fecha": "06/04/2026", "nombre": "WWW.AMAZON* NI4VF4O44", "categoria": "Varios", "importe": -14.99, "tipo": "Gasto (G)"}, {"fecha": "05/04/2026", "nombre": "FAST FUEL VIDANES", "categoria": "Transporte", "importe": -50.0, "tipo": "Gasto (G)"}, {"fecha": "05/04/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -76.0, "tipo": "Gasto (G)"}, {"fecha": "04/04/2026", "nombre": "CAJ.LA CAIXA      OF.6203", "categoria": "Dinero del cajero", "importe": -140.0, "tipo": "Gasto (G)"}, {"fecha": "04/04/2026", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 30.0, "tipo": "Ingreso (I)"}, {"fecha": "04/04/2026", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 27.0, "tipo": "Ingreso (I)"}, {"fecha": "04/04/2026", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 50.0, "tipo": "Ingreso (I)"}, {"fecha": "03/04/2026", "nombre": "LA UNICA PULPERIA RTE", "categoria": "Restaurantes", "importe": -2.5, "tipo": "Gasto (G)"}, {"fecha": "03/04/2026", "nombre": "LA UNICA PULPERIA RTE", "categoria": "Restaurantes", "importe": -12.0, "tipo": "Gasto (G)"}, {"fecha": "03/04/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -60.0, "tipo": "Gasto (G)"}, {"fecha": "03/04/2026", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 40.0, "tipo": "Ingreso (I)"}, {"fecha": "03/04/2026", "nombre": "LA UNICA PULPERIA RTE", "categoria": "Restaurantes", "importe": -12.0, "tipo": "Gasto (G)"}, {"fecha": "03/04/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -22.0, "tipo": "Gasto (G)"}, {"fecha": "02/04/2026", "nombre": "LA UNICA PULPERIA RTE", "categoria": "Restaurantes", "importe": -11.0, "tipo": "Gasto (G)"}, {"fecha": "02/04/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "02/04/2026", "nombre": "BAR LA PEPA", "categoria": "Restaurantes", "importe": -11.0, "tipo": "Gasto (G)"}, {"fecha": "02/04/2026", "nombre": "LA UNICA PULPERIA RTE", "categoria": "Restaurantes", "importe": -7.8, "tipo": "Gasto (G)"}, {"fecha": "02/04/2026", "nombre": "APPLE.COM/BILL", "categoria": "Ocio", "importe": -2.99, "tipo": "Gasto (G)"}, {"fecha": "01/04/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -19.0, "tipo": "Gasto (G)"}, {"fecha": "01/04/2026", "nombre": "LA UNICA PULPERIA RTE", "categoria": "Restaurantes", "importe": -6.0, "tipo": "Gasto (G)"}, {"fecha": "01/04/2026", "nombre": "BAR QUINTA AVENIDA", "categoria": "Restaurantes", "importe": -11.0, "tipo": "Gasto (G)"}, {"fecha": "01/04/2026", "nombre": "LA UNICA PULPERIA RTE", "categoria": "Restaurantes", "importe": -23.0, "tipo": "Gasto (G)"}, {"fecha": "01/04/2026", "nombre": "PayPal Europe S.a.r.l. et Cie S.C.A", "categoria": "Varios", "importe": -11.99, "tipo": "Gasto (G)"}, {"fecha": "31/03/2026", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -37.78, "tipo": "Gasto (G)"}, {"fecha": "31/03/2026", "nombre": "CAJ.LA CAIXA      OF.3352", "categoria": "Dinero del cajero", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "30/03/2026", "nombre": "BOA LOUNGE", "categoria": "Restaurantes", "importe": -29.0, "tipo": "Gasto (G)"}, {"fecha": "30/03/2026", "nombre": "LOS TORREZNOS", "categoria": "Restaurantes", "importe": -9.8, "tipo": "Gasto (G)"}, {"fecha": "30/03/2026", "nombre": "BAR TRAMONTANA", "categoria": "Restaurantes", "importe": -7.0, "tipo": "Gasto (G)"}, {"fecha": "29/03/2026", "nombre": "MIALCAMPO BENITO CASTRO", "categoria": "Supers e hipers", "importe": -3.11, "tipo": "Gasto (G)"}, {"fecha": "29/03/2026", "nombre": "APPLE.COM/BILL", "categoria": "Ocio", "importe": -0.99, "tipo": "Gasto (G)"}, {"fecha": "27/03/2026", "nombre": "NOMINA (TRF)", "categoria": "Nómina / pensión / desempleo", "importe": 1288.55, "tipo": "Ingreso (I)"}, {"fecha": "27/03/2026", "nombre": "KARAOKE", "categoria": "Ocio", "importe": -9.0, "tipo": "Gasto (G)"}, {"fecha": "27/03/2026", "nombre": "KARAOKE", "categoria": "Ocio", "importe": -8.0, "tipo": "Gasto (G)"}, {"fecha": "27/03/2026", "nombre": "KARAOKE", "categoria": "Ocio", "importe": -9.0, "tipo": "Gasto (G)"}, {"fecha": "27/03/2026", "nombre": "KARAOKE", "categoria": "Ocio", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "26/03/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -6.0, "tipo": "Gasto (G)"}, {"fecha": "26/03/2026", "nombre": "LA ARMONIA", "categoria": "Restaurantes", "importe": -3.5, "tipo": "Gasto (G)"}, {"fecha": "26/03/2026", "nombre": "LA ARMONIA", "categoria": "Restaurantes", "importe": -7.0, "tipo": "Gasto (G)"}, {"fecha": "26/03/2026", "nombre": "LA ARMONIA", "categoria": "Restaurantes", "importe": -10.5, "tipo": "Gasto (G)"}, {"fecha": "24/03/2026", "nombre": "CLAUDE.AI SUBSCRIPTION", "categoria": "Electrónica y electrodomésticos", "importe": -21.78, "tipo": "Gasto (G)"}, {"fecha": "23/03/2026", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -38.91, "tipo": "Gasto (G)"}, {"fecha": "23/03/2026", "nombre": "INGRESO CAJERO", "categoria": "Ingresos de efectivo/cheques", "importe": 120.0, "tipo": "Ingreso (I)"}, {"fecha": "22/03/2026", "nombre": "MULTITIENDA 24 HORAS S L", "categoria": "Supers e hipers", "importe": -3.6, "tipo": "Gasto (G)"}, {"fecha": "22/03/2026", "nombre": "MUTUA MADRILE#A MOTOR", "categoria": "Seguros y mutuas", "importe": -172.48, "tipo": "Gasto (G)"}, {"fecha": "21/03/2026", "nombre": "Sala decibelios s.l", "categoria": "Restaurantes", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "21/03/2026", "nombre": "BOA LOUNGE", "categoria": "Restaurantes", "importe": -35.0, "tipo": "Gasto (G)"}, {"fecha": "21/03/2026", "nombre": "ARROYO BRU#EL", "categoria": "Restaurantes", "importe": -7.0, "tipo": "Gasto (G)"}, {"fecha": "21/03/2026", "nombre": "LOS TORREZNOS -GOYA-", "categoria": "Restaurantes", "importe": -10.4, "tipo": "Gasto (G)"}, {"fecha": "21/03/2026", "nombre": "LOS TORREZNOS -GOYA-", "categoria": "Restaurantes", "importe": -4.2, "tipo": "Gasto (G)"}, {"fecha": "21/03/2026", "nombre": "Telpark", "categoria": "Transporte", "importe": -1.61, "tipo": "Gasto (G)"}, {"fecha": "18/03/2026", "nombre": "ALIMENTACION CUNYOU", "categoria": "Supers e hipers", "importe": -1.8, "tipo": "Gasto (G)"}, {"fecha": "18/03/2026", "nombre": "ENTRADAS SPORT", "categoria": "Ocio", "importe": -19.5, "tipo": "Gasto (G)"}, {"fecha": "16/03/2026", "nombre": "MIALCAMPO BENITO CASTRO", "categoria": "Supers e hipers", "importe": -3.66, "tipo": "Gasto (G)"}, {"fecha": "15/03/2026", "nombre": "BAR CUBI", "categoria": "Restaurantes", "importe": -5.4, "tipo": "Gasto (G)"}, {"fecha": "15/03/2026", "nombre": "GASTROBAR EL HABITO", "categoria": "Restaurantes", "importe": -4.0, "tipo": "Gasto (G)"}, {"fecha": "14/03/2026", "nombre": "AU VASA", "categoria": "Transporte", "importe": -1.5, "tipo": "Gasto (G)"}, {"fecha": "14/03/2026", "nombre": "LA BAHIA", "categoria": "Restaurantes", "importe": -29.2, "tipo": "Gasto (G)"}, {"fecha": "14/03/2026", "nombre": "CAFE ALBORADA", "categoria": "Restaurantes", "importe": -6.5, "tipo": "Gasto (G)"}, {"fecha": "14/03/2026", "nombre": "POLIZA P1N0301723", "categoria": "Electrónica y electrodomésticos", "importe": -19.19, "tipo": "Gasto (G)"}, {"fecha": "13/03/2026", "nombre": "SANTA LA DIABLA", "categoria": "Restaurantes", "importe": -7.6, "tipo": "Gasto (G)"}, {"fecha": "13/03/2026", "nombre": "SANTA LA DIABLA", "categoria": "Restaurantes", "importe": -7.6, "tipo": "Gasto (G)"}, {"fecha": "13/03/2026", "nombre": "BARBER SHOP TRADICIONA", "categoria": "Bienestar y belleza", "importe": -9.0, "tipo": "Gasto (G)"}, {"fecha": "12/03/2026", "nombre": "Telpark", "categoria": "Transporte", "importe": -1.38, "tipo": "Gasto (G)"}, {"fecha": "12/03/2026", "nombre": "APPLE.COM/BILL", "categoria": "Ocio", "importe": -0.99, "tipo": "Gasto (G)"}, {"fecha": "10/03/2026", "nombre": "Booking.com Hotel", "categoria": "Hoteles", "importe": -57.0, "tipo": "Gasto (G)"}, {"fecha": "09/03/2026", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -34.27, "tipo": "Gasto (G)"}, {"fecha": "08/03/2026", "nombre": "MC DONALDS PARQUESUR", "categoria": "Restaurantes", "importe": -7.2, "tipo": "Gasto (G)"}, {"fecha": "08/03/2026", "nombre": "LOOMISP*Estadio Butarq", "categoria": "Restaurantes", "importe": -8.0, "tipo": "Gasto (G)"}, {"fecha": "08/03/2026", "nombre": "LOOMISP*Estadio Butarq", "categoria": "Restaurantes", "importe": -10.0, "tipo": "Gasto (G)"}, {"fecha": "08/03/2026", "nombre": "ENTRADAS SPORT", "categoria": "Ocio", "importe": -21.5, "tipo": "Gasto (G)"}, {"fecha": "08/03/2026", "nombre": "LOOMISP*Estadio Butarq", "categoria": "Restaurantes", "importe": -8.0, "tipo": "Gasto (G)"}, {"fecha": "07/03/2026", "nombre": "MULTITIENDA 24 HORAS S L", "categoria": "Supers e hipers", "importe": -5.0, "tipo": "Gasto (G)"}, {"fecha": "07/03/2026", "nombre": "Sala decibelios s.l", "categoria": "Restaurantes", "importe": -9.0, "tipo": "Gasto (G)"}, {"fecha": "07/03/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -2.0, "tipo": "Gasto (G)"}, {"fecha": "07/03/2026", "nombre": "KARAOKE", "categoria": "Ocio", "importe": -18.0, "tipo": "Gasto (G)"}, {"fecha": "06/03/2026", "nombre": "KARAOKE", "categoria": "Ocio", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "06/03/2026", "nombre": "ESTANCO ROBERTO GARCIA", "categoria": "Varios", "importe": -9.95, "tipo": "Gasto (G)"}, {"fecha": "06/03/2026", "nombre": "BARES ANTIGUOS SL", "categoria": "Restaurantes", "importe": -7.0, "tipo": "Gasto (G)"}, {"fecha": "06/03/2026", "nombre": "LOS TORREZNOS -GOYA-", "categoria": "Restaurantes", "importe": -6.6, "tipo": "Gasto (G)"}, {"fecha": "06/03/2026", "nombre": "LOOMISP*se Blanco Alvi", "categoria": "Restaurantes", "importe": -6.0, "tipo": "Gasto (G)"}, {"fecha": "06/03/2026", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -1.2, "tipo": "Gasto (G)"}, {"fecha": "06/03/2026", "nombre": "Trainline SAS", "categoria": "Transporte", "importe": -40.3, "tipo": "Gasto (G)"}, {"fecha": "05/03/2026", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -1.2, "tipo": "Gasto (G)"}, {"fecha": "04/03/2026", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -1.2, "tipo": "Gasto (G)"}, {"fecha": "03/03/2026", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -0.8, "tipo": "Gasto (G)"}, {"fecha": "03/03/2026", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -1.6, "tipo": "Gasto (G)"}, {"fecha": "03/03/2026", "nombre": "PayPal Europe S.a.r.l. et Cie S.C.A", "categoria": "Varios", "importe": -11.99, "tipo": "Gasto (G)"}, {"fecha": "02/03/2026", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 1.2, "tipo": "Ingreso (I)"}, {"fecha": "02/03/2026", "nombre": "ASOCIACION ESCP", "categoria": "Educación", "importe": -1.2, "tipo": "Gasto (G)"}, {"fecha": "02/03/2026", "nombre": "APPLE.COM/BILL", "categoria": "Ocio", "importe": -2.99, "tipo": "Gasto (G)"}, {"fecha": "02/03/2026", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "01/03/2026", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -53.15, "tipo": "Gasto (G)"}, {"fecha": "01/03/2026", "nombre": "CARLING GOAL", "categoria": "Restaurantes", "importe": -6.9, "tipo": "Gasto (G)"}, {"fecha": "01/03/2026", "nombre": "TIENDA REAL SPORTING", "categoria": "Ropa y calzado", "importe": -12.95, "tipo": "Gasto (G)"}, {"fecha": "01/03/2026", "nombre": "HOTEL CASTILLA", "categoria": "Hoteles", "importe": -48.0, "tipo": "Gasto (G)"}, {"fecha": "28/02/2026", "nombre": "LA CASONA JOVELLANOS", "categoria": "Restaurantes", "importe": -4.0, "tipo": "Gasto (G)"}, {"fecha": "28/02/2026", "nombre": "LA CASONA JOVELLANOS", "categoria": "Restaurantes", "importe": -5.0, "tipo": "Gasto (G)"}, {"fecha": "28/02/2026", "nombre": "APPLE.COM/BILL", "categoria": "Ocio", "importe": -0.99, "tipo": "Gasto (G)"}, {"fecha": "28/02/2026", "nombre": "TENAMPA", "categoria": "Restaurantes", "importe": -6.0, "tipo": "Gasto (G)"}, {"fecha": "28/02/2026", "nombre": "VICIO", "categoria": "Restaurantes", "importe": -37.8, "tipo": "Gasto (G)"}, {"fecha": "27/02/2026", "nombre": "COSTCO WHOLESALE SPAIN, S", "categoria": "Transporte", "importe": -50.0, "tipo": "Gasto (G)"}, {"fecha": "26/02/2026", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -1.6, "tipo": "Gasto (G)"}, {"fecha": "26/02/2026", "nombre": "NOMINA (TRF)", "categoria": "Nómina / pensión / desempleo", "importe": 1129.46, "tipo": "Ingreso (I)"}, {"fecha": "25/02/2026", "nombre": "ALIMENTACION CUNYOU", "categoria": "Supers e hipers", "importe": -1.3, "tipo": "Gasto (G)"}, {"fecha": "24/02/2026", "nombre": "MIALCAMPO BENITO CASTRO", "categoria": "Supers e hipers", "importe": -3.14, "tipo": "Gasto (G)"}, {"fecha": "24/02/2026", "nombre": "WWW.AMAZON* 5L6BB66F5", "categoria": "Varios", "importe": -44.99, "tipo": "Gasto (G)"}, {"fecha": "23/02/2026", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -1.2, "tipo": "Gasto (G)"}, {"fecha": "21/02/2026", "nombre": "KARAOKE", "categoria": "Ocio", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "21/02/2026", "nombre": "TABERNAS BIENMESABE S.L.", "categoria": "Restaurantes", "importe": -37.0, "tipo": "Gasto (G)"}, {"fecha": "21/02/2026", "nombre": "MARMAR PZA NUEVA", "categoria": "Restaurantes", "importe": -8.21, "tipo": "Gasto (G)"}, {"fecha": "21/02/2026", "nombre": "LOOMISP*Estadio Butarq", "categoria": "Restaurantes", "importe": -8.25, "tipo": "Gasto (G)"}, {"fecha": "21/02/2026", "nombre": "LOOMISP*Estadio Butarq", "categoria": "Restaurantes", "importe": -5.5, "tipo": "Gasto (G)"}, {"fecha": "21/02/2026", "nombre": "CIRCULO GRANJE#O", "categoria": "Restaurantes", "importe": -15.9, "tipo": "Gasto (G)"}, {"fecha": "21/02/2026", "nombre": "MULTITIENDA 24 HORAS S L", "categoria": "Supers e hipers", "importe": -2.5, "tipo": "Gasto (G)"}, {"fecha": "21/02/2026", "nombre": "UBR* PENDING.UBER.COM", "categoria": "Transporte", "importe": -17.95, "tipo": "Gasto (G)"}, {"fecha": "21/02/2026", "nombre": "UBR* PENDING.UBER.COM", "categoria": "Transporte", "importe": -15.97, "tipo": "Gasto (G)"}, {"fecha": "20/02/2026", "nombre": "KARAOKE", "categoria": "Ocio", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "20/02/2026", "nombre": "BARES ANTIGUOS SL", "categoria": "Restaurantes", "importe": -16.0, "tipo": "Gasto (G)"}, {"fecha": "20/02/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -7.0, "tipo": "Gasto (G)"}, {"fecha": "20/02/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "20/02/2026", "nombre": "TABERNA SABOR CAMPERO FEL", "categoria": "Restaurantes", "importe": -19.0, "tipo": "Gasto (G)"}, {"fecha": "20/02/2026", "nombre": "INGRESO CAJERO", "categoria": "Ingresos de efectivo/cheques", "importe": 170.0, "tipo": "Ingreso (I)"}, {"fecha": "20/02/2026", "nombre": "Telpark", "categoria": "Transporte", "importe": -0.42, "tipo": "Gasto (G)"}, {"fecha": "19/02/2026", "nombre": "MIALCAMPO BENITO CASTRO", "categoria": "Supers e hipers", "importe": -2.19, "tipo": "Gasto (G)"}, {"fecha": "19/02/2026", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -1.6, "tipo": "Gasto (G)"}, {"fecha": "18/02/2026", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -1.6, "tipo": "Gasto (G)"}, {"fecha": "17/02/2026", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -1.6, "tipo": "Gasto (G)"}, {"fecha": "17/02/2026", "nombre": "EMPRESA MUNICIPAL EMT", "categoria": "Transporte", "importe": -1.5, "tipo": "Gasto (G)"}, {"fecha": "16/02/2026", "nombre": "MERCADONA AYALA", "categoria": "Supers e hipers", "importe": -4.35, "tipo": "Gasto (G)"}, {"fecha": "15/02/2026", "nombre": "CRED CONCHA ESPINA", "categoria": "Transporte", "importe": -25.29, "tipo": "Gasto (G)"}, {"fecha": "15/02/2026", "nombre": "BK06868 CONCHA ESPINA", "categoria": "Restaurantes", "importe": -14.4, "tipo": "Gasto (G)"}, {"fecha": "15/02/2026", "nombre": "HOT PERROTE BERNABEU", "categoria": "Restaurantes", "importe": -6.9, "tipo": "Gasto (G)"}, {"fecha": "15/02/2026", "nombre": "T9 FUENLABRADA", "categoria": "Transporte", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "15/02/2026", "nombre": "UBR* PENDING.UBER.COM", "categoria": "Transporte", "importe": -20.39, "tipo": "Gasto (G)"}, {"fecha": "14/02/2026", "nombre": "CITY OF SOUND 2010 SL", "categoria": "Ocio", "importe": -33.0, "tipo": "Gasto (G)"}, {"fecha": "14/02/2026", "nombre": "DIA 13912", "categoria": "Supers e hipers", "importe": -1.95, "tipo": "Gasto (G)"}, {"fecha": "14/02/2026", "nombre": "MCDONALD'S PARLA LAGUNA", "categoria": "Restaurantes", "importe": -9.1, "tipo": "Gasto (G)"}, {"fecha": "14/02/2026", "nombre": "POLIZA P1N0301723", "categoria": "Electrónica y electrodomésticos", "importe": -19.19, "tipo": "Gasto (G)"}, {"fecha": "14/02/2026", "nombre": "MULTITIENDA 24 HORAS S L", "categoria": "Supers e hipers", "importe": -5.0, "tipo": "Gasto (G)"}, {"fecha": "14/02/2026", "nombre": "KARAOKE", "categoria": "Ocio", "importe": -18.0, "tipo": "Gasto (G)"}, {"fecha": "14/02/2026", "nombre": "Sala decibelios s.l", "categoria": "Restaurantes", "importe": -18.0, "tipo": "Gasto (G)"}, {"fecha": "14/02/2026", "nombre": "KARAOKE", "categoria": "Ocio", "importe": -2.0, "tipo": "Gasto (G)"}, {"fecha": "14/02/2026", "nombre": "KARAOKE", "categoria": "Ocio", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "14/02/2026", "nombre": "PLK15388 MANUEL BECERRA", "categoria": "Restaurantes", "importe": -3.99, "tipo": "Gasto (G)"}, {"fecha": "14/02/2026", "nombre": "UBR* PENDING.UBER.COM", "categoria": "Transporte", "importe": -11.96, "tipo": "Gasto (G)"}, {"fecha": "13/02/2026", "nombre": "RESTAURANTE LA ESTRELLA", "categoria": "Restaurantes", "importe": -17.0, "tipo": "Gasto (G)"}, {"fecha": "13/02/2026", "nombre": "BARES ANTIGUOS SL", "categoria": "Restaurantes", "importe": -10.5, "tipo": "Gasto (G)"}, {"fecha": "13/02/2026", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "13/02/2026", "nombre": "MI WOK", "categoria": "Restaurantes", "importe": -8.9, "tipo": "Gasto (G)"}, {"fecha": "12/02/2026", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -1.2, "tipo": "Gasto (G)"}, {"fecha": "12/02/2026", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -0.8, "tipo": "Gasto (G)"}, {"fecha": "12/02/2026", "nombre": "APPLE.COM/BILL", "categoria": "Ocio", "importe": -0.99, "tipo": "Gasto (G)"}, {"fecha": "11/02/2026", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -1.2, "tipo": "Gasto (G)"}, {"fecha": "11/02/2026", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 1.2, "tipo": "Ingreso (I)"}, {"fecha": "10/02/2026", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -0.8, "tipo": "Gasto (G)"}, {"fecha": "10/02/2026", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -1.6, "tipo": "Gasto (G)"}, {"fecha": "10/02/2026", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -1.6, "tipo": "Gasto (G)"}, {"fecha": "09/02/2026", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "08/02/2026", "nombre": "EMPRESA MUNICIPAL EMT", "categoria": "Transporte", "importe": -1.5, "tipo": "Gasto (G)"}, {"fecha": "07/02/2026", "nombre": "BARBER SHOP TRADICIONA", "categoria": "Bienestar y belleza", "importe": -9.0, "tipo": "Gasto (G)"}, {"fecha": "07/02/2026", "nombre": "WAYLET", "categoria": "Restaurantes", "importe": -3.45, "tipo": "Gasto (G)"}, {"fecha": "07/02/2026", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 6.1, "tipo": "Ingreso (I)"}, {"fecha": "07/02/2026", "nombre": "WAYLET", "categoria": "Restaurantes", "importe": -6.61, "tipo": "Gasto (G)"}, {"fecha": "06/02/2026", "nombre": "BARES ANTIGUOS SL", "categoria": "Restaurantes", "importe": -13.7, "tipo": "Gasto (G)"}, {"fecha": "06/02/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -2.0, "tipo": "Gasto (G)"}, {"fecha": "05/02/2026", "nombre": "FARMACIA HERMOSILLA 130", "categoria": "Salud", "importe": -2.08, "tipo": "Gasto (G)"}, {"fecha": "05/02/2026", "nombre": "MUTUA MADRILE#A MOTOR", "categoria": "Seguros y mutuas", "importe": -172.48, "tipo": "Gasto (G)"}, {"fecha": "04/02/2026", "nombre": "PlayStation Network", "categoria": "Ocio", "importe": -31.99, "tipo": "Gasto (G)"}, {"fecha": "04/02/2026", "nombre": "Telpark", "categoria": "Transporte", "importe": -2.07, "tipo": "Gasto (G)"}, {"fecha": "03/02/2026", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 85.0, "tipo": "Ingreso (I)"}, {"fecha": "03/02/2026", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 60.0, "tipo": "Ingreso (I)"}, {"fecha": "03/02/2026", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 60.0, "tipo": "Ingreso (I)"}, {"fecha": "03/02/2026", "nombre": "Hotel at Booking.com", "categoria": "Hoteles", "importe": -240.0, "tipo": "Gasto (G)"}, {"fecha": "03/02/2026", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -1.6, "tipo": "Gasto (G)"}, {"fecha": "03/02/2026", "nombre": "EMPRESA MUNICIPAL EMT", "categoria": "Transporte", "importe": -1.5, "tipo": "Gasto (G)"}, {"fecha": "03/02/2026", "nombre": "PayPal Europe S.a.r.l. et Cie S.C.A", "categoria": "Varios", "importe": -11.99, "tipo": "Gasto (G)"}, {"fecha": "02/02/2026", "nombre": "SUPERMERCADOS SABECO S.A.", "categoria": "Supers e hipers", "importe": -4.31, "tipo": "Gasto (G)"}, {"fecha": "02/02/2026", "nombre": "APPLE.COM/BILL", "categoria": "Ocio", "importe": -2.99, "tipo": "Gasto (G)"}, {"fecha": "02/02/2026", "nombre": "Telpark", "categoria": "Transporte", "importe": -0.32, "tipo": "Gasto (G)"}, {"fecha": "02/02/2026", "nombre": "ENTRADAS SPORT", "categoria": "Ocio", "importe": -49.0, "tipo": "Gasto (G)"}, {"fecha": "02/02/2026", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 25.0, "tipo": "Ingreso (I)"}, {"fecha": "02/02/2026", "nombre": "PayPal Europe S.a.r.l. et Cie S.C.A", "categoria": "Varios", "importe": -35.0, "tipo": "Gasto (G)"}, {"fecha": "01/02/2026", "nombre": "ALEOCARTA SL", "categoria": "Restaurantes", "importe": -7.4, "tipo": "Gasto (G)"}, {"fecha": "01/02/2026", "nombre": "LOS TORREZNOS", "categoria": "Restaurantes", "importe": -14.6, "tipo": "Gasto (G)"}, {"fecha": "31/01/2026", "nombre": "ZARA CC.PARQUESUR LOC.5.9", "categoria": "Ropa y calzado", "importe": -13.09, "tipo": "Gasto (G)"}, {"fecha": "31/01/2026", "nombre": "MCDONALD'S PARLA LAGUNA", "categoria": "Restaurantes", "importe": -7.42, "tipo": "Gasto (G)"}, {"fecha": "31/01/2026", "nombre": "NYX*ABServiciosSelectaE", "categoria": "Supers e hipers", "importe": -1.8, "tipo": "Gasto (G)"}, {"fecha": "31/01/2026", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 12.0, "tipo": "Ingreso (I)"}, {"fecha": "31/01/2026", "nombre": "UBER   * EATS PENDING", "categoria": "Restaurantes", "importe": -13.14, "tipo": "Gasto (G)"}, {"fecha": "30/01/2026", "nombre": "H2 FUENLABRADA", "categoria": "Hoteles", "importe": -130.0, "tipo": "Gasto (G)"}, {"fecha": "30/01/2026", "nombre": "LAS TABLAS", "categoria": "Varios", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "30/01/2026", "nombre": "BAR MORELLANO", "categoria": "Restaurantes", "importe": -31.2, "tipo": "Gasto (G)"}, {"fecha": "30/01/2026", "nombre": "NOMINA (TRF)", "categoria": "Nómina / pensión / desempleo", "importe": 1224.44, "tipo": "Ingreso (I)"}, {"fecha": "29/01/2026", "nombre": "APPLE.COM/BILL", "categoria": "Ocio", "importe": -0.99, "tipo": "Gasto (G)"}, {"fecha": "29/01/2026", "nombre": "Telpark", "categoria": "Transporte", "importe": -6.15, "tipo": "Gasto (G)"}, {"fecha": "29/01/2026", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -0.8, "tipo": "Gasto (G)"}, {"fecha": "29/01/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -25.0, "tipo": "Gasto (G)"}, {"fecha": "28/01/2026", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -1.2, "tipo": "Gasto (G)"}, {"fecha": "27/01/2026", "nombre": "VULKANO LOUNGE", "categoria": "Ocio", "importe": -3.8, "tipo": "Gasto (G)"}, {"fecha": "27/01/2026", "nombre": "Telpark", "categoria": "Transporte", "importe": -0.58, "tipo": "Gasto (G)"}, {"fecha": "26/01/2026", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -1.2, "tipo": "Gasto (G)"}, {"fecha": "26/01/2026", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "25/01/2026", "nombre": "CAJ.LA CAIXA      OF.1369", "categoria": "Dinero del cajero", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "25/01/2026", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 11.0, "tipo": "Ingreso (I)"}, {"fecha": "25/01/2026", "nombre": "TAXI LICENCIA 150", "categoria": "Transporte", "importe": -22.5, "tipo": "Gasto (G)"}, {"fecha": "25/01/2026", "nombre": "LA GATA FLORA BARRA", "categoria": "Restaurantes", "importe": -22.0, "tipo": "Gasto (G)"}, {"fecha": "25/01/2026", "nombre": "CARPANTA&COMPA#IA", "categoria": "Supers e hipers", "importe": -17.0, "tipo": "Gasto (G)"}, {"fecha": "25/01/2026", "nombre": "PARRILLA LA BURGALESA 2", "categoria": "Restaurantes", "importe": -17.0, "tipo": "Gasto (G)"}, {"fecha": "25/01/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -38.0, "tipo": "Gasto (G)"}, {"fecha": "24/01/2026", "nombre": "LIDL BURGOS AUTOMOBA", "categoria": "Supers e hipers", "importe": -13.47, "tipo": "Gasto (G)"}, {"fecha": "24/01/2026", "nombre": "EL KEBAB DE APU", "categoria": "Restaurantes", "importe": -11.0, "tipo": "Gasto (G)"}, {"fecha": "24/01/2026", "nombre": "LA GATA FLORA BARRA2", "categoria": "Restaurantes", "importe": -9.0, "tipo": "Gasto (G)"}, {"fecha": "24/01/2026", "nombre": "LA GATA FLORA BARRA", "categoria": "Restaurantes", "importe": -30.0, "tipo": "Gasto (G)"}, {"fecha": "24/01/2026", "nombre": "AREA DE SERVICIO VILLAGON", "categoria": "Transporte", "importe": -2.5, "tipo": "Gasto (G)"}, {"fecha": "23/01/2026", "nombre": "EL ALFOZ DE BURGOS S.L.", "categoria": "Restaurantes", "importe": -6.3, "tipo": "Gasto (G)"}, {"fecha": "23/01/2026", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -37.35, "tipo": "Gasto (G)"}, {"fecha": "22/01/2026", "nombre": "SUPERMERCADOS SABECO S.A.", "categoria": "Supers e hipers", "importe": -4.06, "tipo": "Gasto (G)"}, {"fecha": "19/01/2026", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -1.2, "tipo": "Gasto (G)"}, {"fecha": "18/01/2026", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -40.0, "tipo": "Gasto (G)"}, {"fecha": "17/01/2026", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 80.0, "tipo": "Ingreso (I)"}, {"fecha": "17/01/2026", "nombre": "CAJ.LA CAIXA      OF.6203", "categoria": "Dinero del cajero", "importe": -130.0, "tipo": "Gasto (G)"}, {"fecha": "17/01/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -10.0, "tipo": "Gasto (G)"}, {"fecha": "16/01/2026", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -33.55, "tipo": "Gasto (G)"}, {"fecha": "16/01/2026", "nombre": "Castellana de Autopistas", "categoria": "Transporte", "importe": -15.7, "tipo": "Gasto (G)"}, {"fecha": "14/01/2026", "nombre": "SUPERMERCADOS SABECO S.A.", "categoria": "Supers e hipers", "importe": -5.13, "tipo": "Gasto (G)"}, {"fecha": "14/01/2026", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "14/01/2026", "nombre": "MM  CASTELLO", "categoria": "Electrónica y electrodomésticos", "importe": -19.19, "tipo": "Gasto (G)"}, {"fecha": "13/01/2026", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -1.2, "tipo": "Gasto (G)"}, {"fecha": "13/01/2026", "nombre": "PayPal Europe S.a.r.l. et Cie S.C.A", "categoria": "Varios", "importe": -21.69, "tipo": "Gasto (G)"}, {"fecha": "12/01/2026", "nombre": "APPLE.COM/BILL", "categoria": "Ocio", "importe": -0.99, "tipo": "Gasto (G)"}, {"fecha": "10/01/2026", "nombre": "MULTITIENDA 24 HORAS S L", "categoria": "Supers e hipers", "importe": -5.0, "tipo": "Gasto (G)"}, {"fecha": "10/01/2026", "nombre": "Sala decibelios s.l", "categoria": "Restaurantes", "importe": -18.0, "tipo": "Gasto (G)"}, {"fecha": "10/01/2026", "nombre": "Sala decibelios s.l", "categoria": "Restaurantes", "importe": -18.0, "tipo": "Gasto (G)"}, {"fecha": "09/01/2026", "nombre": "KARAOKE", "categoria": "Ocio", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "09/01/2026", "nombre": "BARES ANTIGUOS SL", "categoria": "Restaurantes", "importe": -7.0, "tipo": "Gasto (G)"}, {"fecha": "09/01/2026", "nombre": "HOY POR HOY", "categoria": "Restaurantes", "importe": -6.0, "tipo": "Gasto (G)"}, {"fecha": "07/01/2026", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "07/01/2026", "nombre": "Castellana de Autopistas", "categoria": "Transporte", "importe": -15.7, "tipo": "Gasto (G)"}, {"fecha": "04/01/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -15.0, "tipo": "Gasto (G)"}, {"fecha": "04/01/2026", "nombre": "CAJ.LA CAIXA      OF.7976", "categoria": "Dinero del cajero", "importe": -80.0, "tipo": "Gasto (G)"}, {"fecha": "04/01/2026", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 50.0, "tipo": "Ingreso (I)"}, {"fecha": "03/01/2026", "nombre": "CAJ.LA CAIXA      OF.6203", "categoria": "Dinero del cajero", "importe": -110.0, "tipo": "Gasto (G)"}, {"fecha": "03/01/2026", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 60.0, "tipo": "Ingreso (I)"}, {"fecha": "03/01/2026", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -35.0, "tipo": "Gasto (G)"}, {"fecha": "02/01/2026", "nombre": "APPLE.COM/BILL", "categoria": "Ocio", "importe": -2.99, "tipo": "Gasto (G)"}, {"fecha": "02/01/2026", "nombre": "PayPal Europe S.a.r.l. et Cie S.C.A", "categoria": "Varios", "importe": -11.99, "tipo": "Gasto (G)"}, {"fecha": "01/01/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -12.9, "tipo": "Gasto (G)"}, {"fecha": "01/01/2026", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 40.0, "tipo": "Ingreso (I)"}, {"fecha": "01/01/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -40.0, "tipo": "Gasto (G)"}, {"fecha": "01/01/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -40.0, "tipo": "Gasto (G)"}, {"fecha": "01/01/2026", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "31/12/2025", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 100.0, "tipo": "Ingreso (I)"}, {"fecha": "31/12/2025", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 60.0, "tipo": "Ingreso (I)"}, {"fecha": "31/12/2025", "nombre": "CAJ.LA CAIXA      OF.6203", "categoria": "Dinero del cajero", "importe": -200.0, "tipo": "Gasto (G)"}, {"fecha": "31/12/2025", "nombre": "WOODY", "categoria": "Ocio", "importe": -14.7, "tipo": "Gasto (G)"}, {"fecha": "31/12/2025", "nombre": "WOODY", "categoria": "Ocio", "importe": -17.4, "tipo": "Gasto (G)"}, {"fecha": "29/12/2025", "nombre": "CAJ.LA CAIXA      OF.6203", "categoria": "Dinero del cajero", "importe": -40.0, "tipo": "Gasto (G)"}, {"fecha": "29/12/2025", "nombre": "APPLE.COM/BILL", "categoria": "Ocio", "importe": -0.99, "tipo": "Gasto (G)"}, {"fecha": "29/12/2025", "nombre": "NOMINA (TRF)", "categoria": "Nómina / pensión / desempleo", "importe": 1375.79, "tipo": "Ingreso (I)"}, {"fecha": "28/12/2025", "nombre": "BAR CORREO", "categoria": "Restaurantes", "importe": -16.2, "tipo": "Gasto (G)"}, {"fecha": "28/12/2025", "nombre": "STUDIO 54 LEON", "categoria": "Restaurantes", "importe": -8.0, "tipo": "Gasto (G)"}, {"fecha": "28/12/2025", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "28/12/2025", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "28/12/2025", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -45.23, "tipo": "Gasto (G)"}, {"fecha": "27/12/2025", "nombre": "BAR LA POLE", "categoria": "Restaurantes", "importe": -8.1, "tipo": "Gasto (G)"}, {"fecha": "27/12/2025", "nombre": "PICARO COFFE GASTRO BAR", "categoria": "Restaurantes", "importe": -8.7, "tipo": "Gasto (G)"}, {"fecha": "27/12/2025", "nombre": "WOODY", "categoria": "Ocio", "importe": -14.7, "tipo": "Gasto (G)"}, {"fecha": "27/12/2025", "nombre": "WOODY", "categoria": "Ocio", "importe": -16.9, "tipo": "Gasto (G)"}, {"fecha": "26/12/2025", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -15.0, "tipo": "Gasto (G)"}, {"fecha": "25/12/2025", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -30.0, "tipo": "Gasto (G)"}, {"fecha": "25/12/2025", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -40.0, "tipo": "Gasto (G)"}, {"fecha": "25/12/2025", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -50.0, "tipo": "Gasto (G)"}, {"fecha": "25/12/2025", "nombre": "UBER RIDES", "categoria": "Transporte", "importe": 6.49, "tipo": "Gasto (G)"}, {"fecha": "23/12/2025", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -30.0, "tipo": "Gasto (G)"}, {"fecha": "23/12/2025", "nombre": "EL CORTE INGLES-DEPARTAM.", "categoria": "El Corte Inglés", "importe": -49.0, "tipo": "Gasto (G)"}, {"fecha": "23/12/2025", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 30.0, "tipo": "Ingreso (I)"}, {"fecha": "22/12/2025", "nombre": "CAJ.LA CAIXA      OF.1744", "categoria": "Dinero del cajero", "importe": -100.0, "tipo": "Gasto (G)"}, {"fecha": "21/12/2025", "nombre": "09218 TAXI MADRID", "categoria": "Transporte", "importe": -13.45, "tipo": "Gasto (G)"}, {"fecha": "21/12/2025", "nombre": "MUTUA MADRILE#A MOTOR", "categoria": "Seguros y mutuas", "importe": -177.52, "tipo": "Gasto (G)"}, {"fecha": "21/12/2025", "nombre": "CATS", "categoria": "Ocio", "importe": -8.0, "tipo": "Gasto (G)"}, {"fecha": "20/12/2025", "nombre": "MANA", "categoria": "Restaurantes", "importe": -10.0, "tipo": "Gasto (G)"}, {"fecha": "20/12/2025", "nombre": "LA FLACA.", "categoria": "Restaurantes", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "20/12/2025", "nombre": "LA FLACA.", "categoria": "Restaurantes", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "20/12/2025", "nombre": "BAR STEFANY", "categoria": "Restaurantes", "importe": -11.0, "tipo": "Gasto (G)"}, {"fecha": "20/12/2025", "nombre": "TABERNA ALFILO", "categoria": "Restaurantes", "importe": -12.0, "tipo": "Gasto (G)"}, {"fecha": "20/12/2025", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 20.0, "tipo": "Ingreso (I)"}, {"fecha": "20/12/2025", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 121.0, "tipo": "Ingreso (I)"}, {"fecha": "20/12/2025", "nombre": "TAXI 03803", "categoria": "Transporte", "importe": -10.8, "tipo": "Gasto (G)"}, {"fecha": "20/12/2025", "nombre": "POSH CLUB", "categoria": "Ocio", "importe": -24.0, "tipo": "Gasto (G)"}, {"fecha": "20/12/2025", "nombre": "POSH CLUB", "categoria": "Ocio", "importe": -24.0, "tipo": "Gasto (G)"}, {"fecha": "20/12/2025", "nombre": "POSH CLUB", "categoria": "Ocio", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "20/12/2025", "nombre": "UBR* PENDING.UBER.COM", "categoria": "Transporte", "importe": -10.46, "tipo": "Gasto (G)"}, {"fecha": "20/12/2025", "nombre": "UBR* PENDING.UBER.COM", "categoria": "Transporte", "importe": -20.94, "tipo": "Gasto (G)"}, {"fecha": "20/12/2025", "nombre": "UBR* PENDING.UBER.COM", "categoria": "Transporte", "importe": -8.36, "tipo": "Gasto (G)"}, {"fecha": "19/12/2025", "nombre": "KARAOKE", "categoria": "Ocio", "importe": -2.0, "tipo": "Gasto (G)"}, {"fecha": "19/12/2025", "nombre": "KARAOKE", "categoria": "Ocio", "importe": -12.0, "tipo": "Gasto (G)"}, {"fecha": "19/12/2025", "nombre": "BARES ANTIGUOS SL", "categoria": "Restaurantes", "importe": -14.0, "tipo": "Gasto (G)"}, {"fecha": "19/12/2025", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 41.78, "tipo": "Ingreso (I)"}, {"fecha": "19/12/2025", "nombre": "CARBAYIN", "categoria": "Restaurantes", "importe": -113.35, "tipo": "Gasto (G)"}, {"fecha": "19/12/2025", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 37.0, "tipo": "Ingreso (I)"}, {"fecha": "19/12/2025", "nombre": "EL CORNER DE BRINDIS", "categoria": "Restaurantes", "importe": -8.0, "tipo": "Gasto (G)"}, {"fecha": "19/12/2025", "nombre": "BARES ANTIGUOS SL", "categoria": "Restaurantes", "importe": -7.0, "tipo": "Gasto (G)"}, {"fecha": "19/12/2025", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "19/12/2025", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -30.0, "tipo": "Gasto (G)"}, {"fecha": "18/12/2025", "nombre": "METRO DE MADRID S.A.", "categoria": "Transporte", "importe": -10.0, "tipo": "Gasto (G)"}, {"fecha": "17/12/2025", "nombre": "CALLE 365", "categoria": "Restaurantes", "importe": -36.0, "tipo": "Gasto (G)"}, {"fecha": "17/12/2025", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 12.0, "tipo": "Ingreso (I)"}, {"fecha": "17/12/2025", "nombre": "CALLE 365", "categoria": "Restaurantes", "importe": -24.0, "tipo": "Gasto (G)"}, {"fecha": "17/12/2025", "nombre": "CALLE 365", "categoria": "Restaurantes", "importe": -24.0, "tipo": "Gasto (G)"}, {"fecha": "17/12/2025", "nombre": "CALLE 365", "categoria": "Restaurantes", "importe": -13.0, "tipo": "Gasto (G)"}, {"fecha": "17/12/2025", "nombre": "NOMINA (TRF)", "categoria": "Nómina / pensión / desempleo", "importe": 183.0, "tipo": "Ingreso (I)"}, {"fecha": "15/12/2025", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -6.5, "tipo": "Gasto (G)"}, {"fecha": "14/12/2025", "nombre": "TEBOLLAS", "categoria": "Supers e hipers", "importe": -10.0, "tipo": "Gasto (G)"}, {"fecha": "14/12/2025", "nombre": "SOMAHOZ SL", "categoria": "Transporte", "importe": -40.0, "tipo": "Gasto (G)"}, {"fecha": "14/12/2025", "nombre": "MM  CASTELLO", "categoria": "Electrónica y electrodomésticos", "importe": -19.19, "tipo": "Gasto (G)"}, {"fecha": "14/12/2025", "nombre": "KASHMIR KEBAB", "categoria": "Restaurantes", "importe": -14.0, "tipo": "Gasto (G)"}, {"fecha": "14/12/2025", "nombre": "KUDETA", "categoria": "Restaurantes", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "14/12/2025", "nombre": "KAVE SANTANDER SL", "categoria": "Restaurantes", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "14/12/2025", "nombre": "ROSE", "categoria": "Restaurantes", "importe": -17.0, "tipo": "Gasto (G)"}, {"fecha": "14/12/2025", "nombre": "UBER RIDES", "categoria": "Transporte", "importe": -9.84, "tipo": "Gasto (G)"}, {"fecha": "13/12/2025", "nombre": "NUEVO EMBOQUE", "categoria": "Restaurantes", "importe": -10.0, "tipo": "Gasto (G)"}, {"fecha": "13/12/2025", "nombre": "BOCARTE SANTANDER", "categoria": "Ocio", "importe": -19.0, "tipo": "Gasto (G)"}, {"fecha": "13/12/2025", "nombre": "RESTAURANTE LA LOLA", "categoria": "Restaurantes", "importe": -14.5, "tipo": "Gasto (G)"}, {"fecha": "13/12/2025", "nombre": "TASCA STADIUM", "categoria": "Restaurantes", "importe": -7.0, "tipo": "Gasto (G)"}, {"fecha": "13/12/2025", "nombre": "TASCA STADIUM", "categoria": "Restaurantes", "importe": -19.0, "tipo": "Gasto (G)"}, {"fecha": "13/12/2025", "nombre": "BAZAR CUETO", "categoria": "Hogar", "importe": -8.75, "tipo": "Gasto (G)"}, {"fecha": "13/12/2025", "nombre": "KUDETA", "categoria": "Restaurantes", "importe": -40.0, "tipo": "Gasto (G)"}, {"fecha": "13/12/2025", "nombre": "PUB LO QUE DIGA LA RUBIA", "categoria": "Restaurantes", "importe": -18.0, "tipo": "Gasto (G)"}, {"fecha": "13/12/2025", "nombre": "ROSE", "categoria": "Restaurantes", "importe": -24.0, "tipo": "Gasto (G)"}, {"fecha": "13/12/2025", "nombre": "UBR* PENDING.UBER.COM", "categoria": "Transporte", "importe": -6.49, "tipo": "Gasto (G)"}, {"fecha": "13/12/2025", "nombre": "UBR* PENDING.UBER.COM", "categoria": "Transporte", "importe": -7.13, "tipo": "Gasto (G)"}, {"fecha": "12/12/2025", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -47.78, "tipo": "Gasto (G)"}, {"fecha": "12/12/2025", "nombre": "Hotel at Booking.com", "categoria": "Hoteles", "importe": -85.0, "tipo": "Gasto (G)"}, {"fecha": "12/12/2025", "nombre": "UBR* PENDING.UBER.COM", "categoria": "Transporte", "importe": -6.86, "tipo": "Gasto (G)"}, {"fecha": "11/12/2025", "nombre": "MERCADONA AYALA", "categoria": "Supers e hipers", "importe": -4.35, "tipo": "Gasto (G)"}, {"fecha": "11/12/2025", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 58.36, "tipo": "Ingreso (I)"}, {"fecha": "10/12/2025", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "09/12/2025", "nombre": "100M TAPAS PARQUESUR", "categoria": "Restaurantes", "importe": -7.0, "tipo": "Gasto (G)"}, {"fecha": "08/12/2025", "nombre": "BAR IRAKLI", "categoria": "Restaurantes", "importe": -1.8, "tipo": "Gasto (G)"}, {"fecha": "08/12/2025", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -19.38, "tipo": "Gasto (G)"}, {"fecha": "08/12/2025", "nombre": "CASA PEPE", "categoria": "Restaurantes", "importe": -12.5, "tipo": "Gasto (G)"}, {"fecha": "08/12/2025", "nombre": "TAXI FRANCISCO", "categoria": "Transporte", "importe": -12.42, "tipo": "Gasto (G)"}, {"fecha": "08/12/2025", "nombre": "KEBAD NEPTUNO", "categoria": "Restaurantes", "importe": -16.0, "tipo": "Gasto (G)"}, {"fecha": "08/12/2025", "nombre": "MAE WEST GRANADA CENTRAL", "categoria": "Restaurantes", "importe": -9.0, "tipo": "Gasto (G)"}, {"fecha": "08/12/2025", "nombre": "MAE WEST GRANADA CENTRAL", "categoria": "Restaurantes", "importe": -18.0, "tipo": "Gasto (G)"}, {"fecha": "08/12/2025", "nombre": "MAE WEST GRANADA CENTRAL", "categoria": "Restaurantes", "importe": -18.0, "tipo": "Gasto (G)"}, {"fecha": "08/12/2025", "nombre": "TAXI 145", "categoria": "Transporte", "importe": -13.92, "tipo": "Gasto (G)"}, {"fecha": "08/12/2025", "nombre": "TAXI 145", "categoria": "Transporte", "importe": -18.27, "tipo": "Gasto (G)"}, {"fecha": "07/12/2025", "nombre": "ALIATAR GRANADA", "categoria": "Ocio", "importe": -30.0, "tipo": "Gasto (G)"}, {"fecha": "07/12/2025", "nombre": "METRO DE GRANADA", "categoria": "Transporte", "importe": -4.35, "tipo": "Gasto (G)"}, {"fecha": "07/12/2025", "nombre": "GRUPO TORO", "categoria": "Restaurantes", "importe": -10.5, "tipo": "Gasto (G)"}, {"fecha": "07/12/2025", "nombre": "PIBES LOS CARMENES", "categoria": "Restaurantes", "importe": -43.0, "tipo": "Gasto (G)"}, {"fecha": "07/12/2025", "nombre": "MONTI MAR", "categoria": "Restaurantes", "importe": -15.0, "tipo": "Gasto (G)"}, {"fecha": "07/12/2025", "nombre": "PIBES LOS CARMENES", "categoria": "Restaurantes", "importe": -18.0, "tipo": "Gasto (G)"}, {"fecha": "07/12/2025", "nombre": "TAXI LICENCIA 197", "categoria": "Transporte", "importe": -5.52, "tipo": "Gasto (G)"}, {"fecha": "07/12/2025", "nombre": "ADM.LOTERIA N.1", "categoria": "Ocio", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "07/12/2025", "nombre": "TAXI 145", "categoria": "Transporte", "importe": -22.82, "tipo": "Gasto (G)"}, {"fecha": "07/12/2025", "nombre": "POSITIVE", "categoria": "Varios", "importe": -98.91, "tipo": "Gasto (G)"}, {"fecha": "07/12/2025", "nombre": "TAXI 145", "categoria": "Transporte", "importe": -17.1, "tipo": "Gasto (G)"}, {"fecha": "07/12/2025", "nombre": "MAE WEST GRANADA BRIBON D", "categoria": "Restaurantes", "importe": -23.0, "tipo": "Gasto (G)"}, {"fecha": "07/12/2025", "nombre": "MAE WEST GRANADA OTROS", "categoria": "Restaurantes", "importe": -2.0, "tipo": "Gasto (G)"}, {"fecha": "06/12/2025", "nombre": "CONFUSO", "categoria": "Restaurantes", "importe": -21.0, "tipo": "Gasto (G)"}, {"fecha": "06/12/2025", "nombre": "PUERTA DE LA ALHAMBRA", "categoria": "Restaurantes", "importe": -31.9, "tipo": "Gasto (G)"}, {"fecha": "06/12/2025", "nombre": "DAMASCO", "categoria": "Restaurantes", "importe": -5.0, "tipo": "Gasto (G)"}, {"fecha": "06/12/2025", "nombre": "MAE WEST GRANADA CENTRAL", "categoria": "Restaurantes", "importe": -19.0, "tipo": "Gasto (G)"}, {"fecha": "06/12/2025", "nombre": "MAE WEST GRANADA MOLLY MA", "categoria": "Restaurantes", "importe": -40.0, "tipo": "Gasto (G)"}, {"fecha": "06/12/2025", "nombre": "TAXI 145", "categoria": "Transporte", "importe": -16.57, "tipo": "Gasto (G)"}, {"fecha": "06/12/2025", "nombre": "FUNKY PANDA", "categoria": "Restaurantes", "importe": -16.0, "tipo": "Gasto (G)"}, {"fecha": "05/12/2025", "nombre": "CAFET-REST 258", "categoria": "Restaurantes", "importe": -4.0, "tipo": "Gasto (G)"}, {"fecha": "05/12/2025", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -46.79, "tipo": "Gasto (G)"}, {"fecha": "05/12/2025", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 80.0, "tipo": "Ingreso (I)"}, {"fecha": "04/12/2025", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -1.2, "tipo": "Gasto (G)"}, {"fecha": "04/12/2025", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 42.0, "tipo": "Ingreso (I)"}, {"fecha": "04/12/2025", "nombre": "GRANADA CF, SAD", "categoria": "Bienestar y belleza", "importe": -125.85, "tipo": "Gasto (G)"}, {"fecha": "04/12/2025", "nombre": "BARBER SHOP TRADICIONA", "categoria": "Bienestar y belleza", "importe": -9.0, "tipo": "Gasto (G)"}, {"fecha": "04/12/2025", "nombre": "NOMINA (TRF)", "categoria": "Nómina / pensión / desempleo", "importe": 646.42, "tipo": "Ingreso (I)"}, {"fecha": "03/12/2025", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 38.0, "tipo": "Ingreso (I)"}, {"fecha": "03/12/2025", "nombre": "ENTRADASMASTER", "categoria": "Ocio", "importe": -114.0, "tipo": "Gasto (G)"}, {"fecha": "02/12/2025", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -1.6, "tipo": "Gasto (G)"}, {"fecha": "02/12/2025", "nombre": "APPLE.COM/BILL", "categoria": "Ocio", "importe": -2.99, "tipo": "Gasto (G)"}, {"fecha": "02/12/2025", "nombre": "Telpark", "categoria": "Transporte", "importe": -1.67, "tipo": "Gasto (G)"}, {"fecha": "02/12/2025", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -111.0, "tipo": "Gasto (G)"}, {"fecha": "02/12/2025", "nombre": "PayPal Europe S.a.r.l. et Cie S.C.A", "categoria": "Varios", "importe": -11.99, "tipo": "Gasto (G)"}, {"fecha": "01/12/2025", "nombre": "SABECO - BENITO CASTRO", "categoria": "Supers e hipers", "importe": -1.69, "tipo": "Gasto (G)"}, {"fecha": "29/11/2025", "nombre": "EL OLIVO", "categoria": "Restaurantes", "importe": -2.2, "tipo": "Gasto (G)"}, {"fecha": "29/11/2025", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -8.5, "tipo": "Gasto (G)"}, {"fecha": "29/11/2025", "nombre": "COSTCO WHOLESALE SPAIN, S", "categoria": "Transporte", "importe": -40.0, "tipo": "Gasto (G)"}, {"fecha": "29/11/2025", "nombre": "APPLE.COM/BILL", "categoria": "Ocio", "importe": -0.99, "tipo": "Gasto (G)"}, {"fecha": "29/11/2025", "nombre": "MULTITIENDA 24 HORAS S L", "categoria": "Supers e hipers", "importe": -5.0, "tipo": "Gasto (G)"}, {"fecha": "29/11/2025", "nombre": "KARAOKE", "categoria": "Ocio", "importe": -16.0, "tipo": "Gasto (G)"}, {"fecha": "28/11/2025", "nombre": "SumUp  *Sala decibelio", "categoria": "Restaurantes", "importe": -16.0, "tipo": "Gasto (G)"}, {"fecha": "28/11/2025", "nombre": "KARAOKE", "categoria": "Ocio", "importe": -12.0, "tipo": "Gasto (G)"}, {"fecha": "28/11/2025", "nombre": "LOS TORREZNOS -GOYA-", "categoria": "Restaurantes", "importe": -4.0, "tipo": "Gasto (G)"}, {"fecha": "28/11/2025", "nombre": "NOMINA (TRF)", "categoria": "Nómina / pensión / desempleo", "importe": 631.55, "tipo": "Ingreso (I)"}, {"fecha": "27/11/2025", "nombre": "SABECO - BENITO CASTRO", "categoria": "Supers e hipers", "importe": -5.05, "tipo": "Gasto (G)"}, {"fecha": "27/11/2025", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -1.6, "tipo": "Gasto (G)"}, {"fecha": "27/11/2025", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -1.0, "tipo": "Gasto (G)"}, {"fecha": "26/11/2025", "nombre": "BAR MORELLANO", "categoria": "Restaurantes", "importe": -31.2, "tipo": "Gasto (G)"}, {"fecha": "25/11/2025", "nombre": "SABECO - BENITO CASTRO", "categoria": "Supers e hipers", "importe": -2.13, "tipo": "Gasto (G)"}, {"fecha": "23/11/2025", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -30.0, "tipo": "Gasto (G)"}, {"fecha": "23/11/2025", "nombre": "CISTIERNA", "categoria": "Transporte", "importe": -22.89, "tipo": "Gasto (G)"}, {"fecha": "23/11/2025", "nombre": "LA UNICA PULPERIA RTE", "categoria": "Restaurantes", "importe": -3.6, "tipo": "Gasto (G)"}, {"fecha": "23/11/2025", "nombre": "DINGA DONNER KEBAB", "categoria": "Restaurantes", "importe": -5.0, "tipo": "Gasto (G)"}, {"fecha": "23/11/2025", "nombre": "STUDIO 54 LEON", "categoria": "Ocio", "importe": -7.0, "tipo": "Gasto (G)"}, {"fecha": "23/11/2025", "nombre": "MOLLY LEON", "categoria": "Restaurantes", "importe": -16.5, "tipo": "Gasto (G)"}, {"fecha": "23/11/2025", "nombre": "MOLLY LEON", "categoria": "Restaurantes", "importe": -16.5, "tipo": "Gasto (G)"}, {"fecha": "22/11/2025", "nombre": "PUB VHS", "categoria": "Restaurantes", "importe": -6.0, "tipo": "Gasto (G)"}, {"fecha": "22/11/2025", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "22/11/2025", "nombre": "DINGA KEBAB", "categoria": "Restaurantes", "importe": -6.0, "tipo": "Gasto (G)"}, {"fecha": "22/11/2025", "nombre": "VANNITY LUXURY HALL", "categoria": "Ocio", "importe": -8.0, "tipo": "Gasto (G)"}, {"fecha": "22/11/2025", "nombre": "EL TEMPLO DE LEON", "categoria": "Restaurantes", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "22/11/2025", "nombre": "EL TEMPLO DE LEON", "categoria": "Restaurantes", "importe": -16.0, "tipo": "Gasto (G)"}, {"fecha": "21/11/2025", "nombre": "BAR CANDILEJAS", "categoria": "Restaurantes", "importe": -8.4, "tipo": "Gasto (G)"}, {"fecha": "21/11/2025", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "21/11/2025", "nombre": "BAR CANDILEJAS", "categoria": "Restaurantes", "importe": -2.8, "tipo": "Gasto (G)"}, {"fecha": "21/11/2025", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 40.0, "tipo": "Ingreso (I)"}, {"fecha": "21/11/2025", "nombre": "CAJ.LA CAIXA      OF.4162", "categoria": "Dinero del cajero", "importe": -40.0, "tipo": "Gasto (G)"}, {"fecha": "21/11/2025", "nombre": "BAR EL OLVIDO", "categoria": "Restaurantes", "importe": -10.0, "tipo": "Gasto (G)"}, {"fecha": "21/11/2025", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -50.0, "tipo": "Gasto (G)"}, {"fecha": "20/11/2025", "nombre": "SABECO - BENITO CASTRO", "categoria": "Supers e hipers", "importe": -2.49, "tipo": "Gasto (G)"}, {"fecha": "19/11/2025", "nombre": "FS 2024 SL", "categoria": "Supers e hipers", "importe": -5.0, "tipo": "Gasto (G)"}, {"fecha": "19/11/2025", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -16.12, "tipo": "Gasto (G)"}, {"fecha": "19/11/2025", "nombre": "ILUSIONA NASSICA", "categoria": "Ocio", "importe": -14.5, "tipo": "Gasto (G)"}, {"fecha": "19/11/2025", "nombre": "ARLETH INVERSIONES SL", "categoria": "Restaurantes", "importe": -5.0, "tipo": "Gasto (G)"}, {"fecha": "18/11/2025", "nombre": "ADMON EL CASTILLO DE LA S", "categoria": "Ocio", "importe": -1.5, "tipo": "Gasto (G)"}, {"fecha": "18/11/2025", "nombre": "ALIMENTACION CUNYOU", "categoria": "Supers e hipers", "importe": -2.4, "tipo": "Gasto (G)"}, {"fecha": "18/11/2025", "nombre": "ASOC ESCP EUROPE ESPA#A", "categoria": "Varios", "importe": -0.8, "tipo": "Gasto (G)"}, {"fecha": "16/11/2025", "nombre": "TORRE 72", "categoria": "Restaurantes", "importe": -3.6, "tipo": "Gasto (G)"}, {"fecha": "16/11/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -1.24, "tipo": "Gasto (G)"}, {"fecha": "16/11/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -1.24, "tipo": "Gasto (G)"}, {"fecha": "15/11/2025", "nombre": "SumUp  *Sala decibelio", "categoria": "Restaurantes", "importe": -10.0, "tipo": "Gasto (G)"}, {"fecha": "15/11/2025", "nombre": "RELAX CAFETERIA", "categoria": "Restaurantes", "importe": -7.0, "tipo": "Gasto (G)"}, {"fecha": "15/11/2025", "nombre": "BARES ANTIGUOS SL", "categoria": "Restaurantes", "importe": -6.8, "tipo": "Gasto (G)"}, {"fecha": "15/11/2025", "nombre": "Telpark", "categoria": "Transporte", "importe": -2.42, "tipo": "Gasto (G)"}, {"fecha": "15/11/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -0.72, "tipo": "Gasto (G)"}, {"fecha": "14/11/2025", "nombre": "GINGER LIVE MUSIC", "categoria": "Varios", "importe": -12.0, "tipo": "Gasto (G)"}, {"fecha": "14/11/2025", "nombre": "Telpark", "categoria": "Transporte", "importe": -1.67, "tipo": "Gasto (G)"}, {"fecha": "14/11/2025", "nombre": "GINGER LIVE MUSIC", "categoria": "Varios", "importe": -3.0, "tipo": "Gasto (G)"}, {"fecha": "14/11/2025", "nombre": "GINGER LIVE MUSIC", "categoria": "Varios", "importe": -3.0, "tipo": "Gasto (G)"}, {"fecha": "14/11/2025", "nombre": "LEOBARMAN S.L.", "categoria": "Restaurantes", "importe": -3.3, "tipo": "Gasto (G)"}, {"fecha": "14/11/2025", "nombre": "BARBER SHOP TRADICIONA", "categoria": "Bienestar y belleza", "importe": -9.0, "tipo": "Gasto (G)"}, {"fecha": "14/11/2025", "nombre": "MM  CASTELLO", "categoria": "Electrónica y electrodomésticos", "importe": -19.19, "tipo": "Gasto (G)"}, {"fecha": "13/11/2025", "nombre": "SABECO - BENITO CASTRO", "categoria": "Supers e hipers", "importe": -3.59, "tipo": "Gasto (G)"}, {"fecha": "13/11/2025", "nombre": "CERVECERIA EL RISCO", "categoria": "Restaurantes", "importe": -5.7, "tipo": "Gasto (G)"}, {"fecha": "13/11/2025", "nombre": "PayPal Europe S.a.r.l. et Cie S.C.A", "categoria": "Varios", "importe": -34.66, "tipo": "Gasto (G)"}, {"fecha": "12/11/2025", "nombre": "T CHAMPIONS BURGER GIRA 1", "categoria": "Ocio", "importe": -12.95, "tipo": "Gasto (G)"}, {"fecha": "12/11/2025", "nombre": "T CHAMPIONS BURGER GIRA 1", "categoria": "Ocio", "importe": -7.0, "tipo": "Gasto (G)"}, {"fecha": "12/11/2025", "nombre": "T CHAMPIONS BURGER GIRA 1", "categoria": "Ocio", "importe": -12.95, "tipo": "Gasto (G)"}, {"fecha": "12/11/2025", "nombre": "ZARA CC.PARQUESUR LOC.5.9", "categoria": "Ropa y calzado", "importe": -59.07, "tipo": "Gasto (G)"}, {"fecha": "11/11/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -0.93, "tipo": "Gasto (G)"}, {"fecha": "11/11/2025", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -40.0, "tipo": "Gasto (G)"}, {"fecha": "10/11/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -0.93, "tipo": "Gasto (G)"}, {"fecha": "10/11/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -1.24, "tipo": "Gasto (G)"}, {"fecha": "09/11/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -1.24, "tipo": "Gasto (G)"}, {"fecha": "09/11/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -1.24, "tipo": "Gasto (G)"}, {"fecha": "08/11/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -1.24, "tipo": "Gasto (G)"}, {"fecha": "08/11/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -1.24, "tipo": "Gasto (G)"}, {"fecha": "07/11/2025", "nombre": "BAZAR FUENTE DEL BERRO", "categoria": "Hogar", "importe": -7.45, "tipo": "Gasto (G)"}, {"fecha": "07/11/2025", "nombre": "CAJ.LA CAIXA      OF.1744", "categoria": "Dinero del cajero", "importe": -1150.0, "tipo": "Gasto (G)"}, {"fecha": "06/11/2025", "nombre": "AROMAS ARTESANALES", "categoria": "Supers e hipers", "importe": -14.9, "tipo": "Gasto (G)"}, {"fecha": "06/11/2025", "nombre": "ADMON EL CASTILLO DE LA S", "categoria": "Ocio", "importe": -1.5, "tipo": "Gasto (G)"}, {"fecha": "05/11/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -1.24, "tipo": "Gasto (G)"}, {"fecha": "05/11/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -0.72, "tipo": "Gasto (G)"}, {"fecha": "05/11/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -1.24, "tipo": "Gasto (G)"}, {"fecha": "04/11/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -1.24, "tipo": "Gasto (G)"}, {"fecha": "03/11/2025", "nombre": "PayPal Europe S.a.r.l. et Cie S.C.A", "categoria": "Varios", "importe": -11.99, "tipo": "Gasto (G)"}, {"fecha": "02/11/2025", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -37.36, "tipo": "Gasto (G)"}, {"fecha": "02/11/2025", "nombre": "APPLE.COM/BILL", "categoria": "Ocio", "importe": -2.99, "tipo": "Gasto (G)"}, {"fecha": "02/11/2025", "nombre": "LICENCIA 11612", "categoria": "Transporte", "importe": -12.9, "tipo": "Gasto (G)"}, {"fecha": "02/11/2025", "nombre": "LICENCIA 06989", "categoria": "Transporte", "importe": -11.9, "tipo": "Gasto (G)"}, {"fecha": "02/11/2025", "nombre": "Barcalvin", "categoria": "Restaurantes", "importe": -20.4, "tipo": "Gasto (G)"}, {"fecha": "01/11/2025", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -7.15, "tipo": "Gasto (G)"}, {"fecha": "01/11/2025", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -30.2, "tipo": "Gasto (G)"}, {"fecha": "01/11/2025", "nombre": "LIC 9319", "categoria": "Transporte", "importe": -11.3, "tipo": "Gasto (G)"}, {"fecha": "01/11/2025", "nombre": "CHAMAN BOLIER CLUB", "categoria": "Ocio", "importe": -14.0, "tipo": "Gasto (G)"}, {"fecha": "31/10/2025", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 6.15, "tipo": "Ingreso (I)"}, {"fecha": "31/10/2025", "nombre": "BK11090 MANUEL BECERRA", "categoria": "Restaurantes", "importe": -16.62, "tipo": "Gasto (G)"}, {"fecha": "31/10/2025", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -22.0, "tipo": "Gasto (G)"}, {"fecha": "30/10/2025", "nombre": "SABECO - BENITO CASTRO", "categoria": "Supers e hipers", "importe": -4.98, "tipo": "Gasto (G)"}, {"fecha": "30/10/2025", "nombre": "NOMINA (TRF)", "categoria": "Nómina / pensión / desempleo", "importe": 1794.59, "tipo": "Ingreso (I)"}, {"fecha": "29/10/2025", "nombre": "APPLE.COM/BILL", "categoria": "Ocio", "importe": -0.99, "tipo": "Gasto (G)"}, {"fecha": "29/10/2025", "nombre": "BARBER SHOP TRADICIONA", "categoria": "Bienestar y belleza", "importe": -9.0, "tipo": "Gasto (G)"}, {"fecha": "28/10/2025", "nombre": "SABECO - BENITO CASTRO", "categoria": "Supers e hipers", "importe": -1.06, "tipo": "Gasto (G)"}, {"fecha": "27/10/2025", "nombre": "Telpark", "categoria": "Transporte", "importe": -1.82, "tipo": "Gasto (G)"}, {"fecha": "27/10/2025", "nombre": "FARMACIA KAISER", "categoria": "Salud", "importe": -5.2, "tipo": "Gasto (G)"}, {"fecha": "27/10/2025", "nombre": "MUTUA MADRILE#A MOTOR", "categoria": "Seguros y mutuas", "importe": -828.11, "tipo": "Gasto (G)"}, {"fecha": "26/10/2025", "nombre": "CEPSA 20161-1 ETXEGARATE", "categoria": "Transporte", "importe": -1.6, "tipo": "Gasto (G)"}, {"fecha": "26/10/2025", "nombre": "BURGER KING IRUN", "categoria": "Restaurantes", "importe": -10.95, "tipo": "Gasto (G)"}, {"fecha": "26/10/2025", "nombre": "BASQUE KORNER", "categoria": "Restaurantes", "importe": -8.0, "tipo": "Gasto (G)"}, {"fecha": "26/10/2025", "nombre": "BAR MARI", "categoria": "Restaurantes", "importe": -10.0, "tipo": "Gasto (G)"}, {"fecha": "26/10/2025", "nombre": "ESKINA MOSKU", "categoria": "Restaurantes", "importe": -5.2, "tipo": "Gasto (G)"}, {"fecha": "26/10/2025", "nombre": "ESKINA MOSKU", "categoria": "Restaurantes", "importe": -5.2, "tipo": "Gasto (G)"}, {"fecha": "25/10/2025", "nombre": "TELEPIZZA IRUN", "categoria": "Restaurantes", "importe": -23.7, "tipo": "Gasto (G)"}, {"fecha": "25/10/2025", "nombre": "BIDEGI A8/A1 GIPUZKOA", "categoria": "Transporte", "importe": -2.18, "tipo": "Gasto (G)"}, {"fecha": "25/10/2025", "nombre": "BIDEGI A8/A1 GIPUZKOA", "categoria": "Transporte", "importe": -7.23, "tipo": "Gasto (G)"}, {"fecha": "25/10/2025", "nombre": "LA TERRAZA", "categoria": "Restaurantes", "importe": -5.2, "tipo": "Gasto (G)"}, {"fecha": "25/10/2025", "nombre": "LA TERRAZA", "categoria": "Restaurantes", "importe": -5.2, "tipo": "Gasto (G)"}, {"fecha": "25/10/2025", "nombre": "BIDEGI A8/A1 GIPUZKOA", "categoria": "Transporte", "importe": -3.06, "tipo": "Gasto (G)"}, {"fecha": "25/10/2025", "nombre": "BIDEGI A8/A1 GIPUZKOA", "categoria": "Transporte", "importe": -13.4, "tipo": "Gasto (G)"}, {"fecha": "25/10/2025", "nombre": "SALA BILBAO MOMA", "categoria": "Ocio", "importe": -36.0, "tipo": "Gasto (G)"}, {"fecha": "25/10/2025", "nombre": "ATELIER BERRIA", "categoria": "Ocio", "importe": -17.0, "tipo": "Gasto (G)"}, {"fecha": "24/10/2025", "nombre": "BIRIBILDU BARRIA", "categoria": "Restaurantes", "importe": -6.8, "tipo": "Gasto (G)"}, {"fecha": "24/10/2025", "nombre": "AUT. VASCO ARAGONESA AP68", "categoria": "Transporte", "importe": -12.1, "tipo": "Gasto (G)"}, {"fecha": "24/10/2025", "nombre": "EL ALFOZ DE BURGOS S.L.", "categoria": "Restaurantes", "importe": -5.6, "tipo": "Gasto (G)"}, {"fecha": "24/10/2025", "nombre": "EL ALFOZ DE BURGOS S.L.", "categoria": "Restaurantes", "importe": -6.4, "tipo": "Gasto (G)"}, {"fecha": "24/10/2025", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -33.09, "tipo": "Gasto (G)"}, {"fecha": "23/10/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -1.24, "tipo": "Gasto (G)"}, {"fecha": "23/10/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -0.93, "tipo": "Gasto (G)"}, {"fecha": "22/10/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -0.93, "tipo": "Gasto (G)"}, {"fecha": "21/10/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -1.24, "tipo": "Gasto (G)"}, {"fecha": "21/10/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -0.93, "tipo": "Gasto (G)"}, {"fecha": "21/10/2025", "nombre": "AYTO MADRID PAGO INTERNET", "categoria": "Impuestos y multas", "importe": -22.15, "tipo": "Gasto (G)"}, {"fecha": "21/10/2025", "nombre": "AYTO MADRID PAGO INTERNET", "categoria": "Impuestos y multas", "importe": -24.6, "tipo": "Gasto (G)"}, {"fecha": "20/10/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -1.24, "tipo": "Gasto (G)"}, {"fecha": "20/10/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -0.93, "tipo": "Gasto (G)"}, {"fecha": "20/10/2025", "nombre": "COSTCO WHOLESALE SPAIN, S", "categoria": "Transporte", "importe": -40.0, "tipo": "Gasto (G)"}, {"fecha": "19/10/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -1.24, "tipo": "Gasto (G)"}, {"fecha": "19/10/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -0.93, "tipo": "Gasto (G)"}, {"fecha": "19/10/2025", "nombre": "BIZUM RECIBIDO", "categoria": "Bizum recibido", "importe": 25.0, "tipo": "Ingreso (I)"}, {"fecha": "19/10/2025", "nombre": "BK26904 VALDEMORO CIEMPOZ", "categoria": "Restaurantes", "importe": -13.9, "tipo": "Gasto (G)"}, {"fecha": "19/10/2025", "nombre": "CATS", "categoria": "Ocio", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "19/10/2025", "nombre": "CATS", "categoria": "Ocio", "importe": -12.0, "tipo": "Gasto (G)"}, {"fecha": "19/10/2025", "nombre": "FREENOW* CVNS3M-2", "categoria": "Transporte", "importe": -14.1, "tipo": "Gasto (G)"}, {"fecha": "19/10/2025", "nombre": "FREENOW* CVPDK4-2", "categoria": "Transporte", "importe": -17.65, "tipo": "Gasto (G)"}, {"fecha": "18/10/2025", "nombre": "BODEGAS ALVARO", "categoria": "Supers e hipers", "importe": -6.2, "tipo": "Gasto (G)"}, {"fecha": "18/10/2025", "nombre": "CRED LAS TABLAS", "categoria": "Transporte", "importe": -21.79, "tipo": "Gasto (G)"}, {"fecha": "18/10/2025", "nombre": "LAS TABLAS HOSTELERIA", "categoria": "Restaurantes", "importe": -4.4, "tipo": "Gasto (G)"}, {"fecha": "18/10/2025", "nombre": "Telpark", "categoria": "Transporte", "importe": -7.19, "tipo": "Gasto (G)"}, {"fecha": "18/10/2025", "nombre": "la quinta", "categoria": "Restaurantes", "importe": -24.0, "tipo": "Gasto (G)"}, {"fecha": "17/10/2025", "nombre": "PREMIUMGUEST", "categoria": "Ocio", "importe": -49.5, "tipo": "Gasto (G)"}, {"fecha": "17/10/2025", "nombre": "Taberna Sabor Campero 3c", "categoria": "Restaurantes", "importe": -25.2, "tipo": "Gasto (G)"}, {"fecha": "16/10/2025", "nombre": "SABECO - BENITO CASTRO", "categoria": "Supers e hipers", "importe": -4.19, "tipo": "Gasto (G)"}, {"fecha": "16/10/2025", "nombre": "Telpark", "categoria": "Transporte", "importe": -0.47, "tipo": "Gasto (G)"}, {"fecha": "16/10/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -1.24, "tipo": "Gasto (G)"}, {"fecha": "16/10/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -0.93, "tipo": "Gasto (G)"}, {"fecha": "16/10/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -0.93, "tipo": "Gasto (G)"}, {"fecha": "15/10/2025", "nombre": "COSTCO WHOLESALE SPAIN, S", "categoria": "Transporte", "importe": -40.0, "tipo": "Gasto (G)"}, {"fecha": "15/10/2025", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -6.0, "tipo": "Gasto (G)"}, {"fecha": "14/10/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -0.93, "tipo": "Gasto (G)"}, {"fecha": "14/10/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -1.24, "tipo": "Gasto (G)"}, {"fecha": "14/10/2025", "nombre": "DELIKIA SP", "categoria": "Supers e hipers", "importe": -0.93, "tipo": "Gasto (G)"}, {"fecha": "14/10/2025", "nombre": "MM  CASTELLO", "categoria": "Electrónica y electrodomésticos", "importe": -19.19, "tipo": "Gasto (G)"}, {"fecha": "14/10/2025", "nombre": "PayPal Europe S.a.r.l. et Cie S.C.A", "categoria": "Varios", "importe": -34.67, "tipo": "Gasto (G)"}, {"fecha": "13/10/2025", "nombre": "Telpark", "categoria": "Transporte", "importe": -3.39, "tipo": "Gasto (G)"}, {"fecha": "13/10/2025", "nombre": "REPSOL WAYLET", "categoria": "Transporte", "importe": -20.0, "tipo": "Gasto (G)"}, {"fecha": "12/10/2025", "nombre": "DESTINO", "categoria": "Restaurantes", "importe": -26.7, "tipo": "Gasto (G)"}, {"fecha": "12/10/2025", "nombre": "BIZUM ENVIADO", "categoria": "Bizum realizado", "importe": -25.0, "tipo": "Gasto (G)"}];
-const LS_KEY = 'misfinanzas_manual_v1';
-const WORKER_URL = 'https://misfinanzas-api.alvarohenche15.workers.dev';
-
-function loadLocal(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch(e){ return []; } }
-function saveLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(DATA_MANUAL)); }catch(e){} }
-
-async function loadFromGist(){
-  try{
-    const r = await fetch(WORKER_URL);
-    if(!r.ok) throw new Error(`HTTP ${r.status}`);
-    return await r.json();
-  }catch(e){ console.warn('Worker no disponible, usando local:', e); return loadLocal(); }
-}
-
-async function saveToGist(){
-  saveLocal();
-  setSyncStatus('saving');
-  try{
-    const r = await fetch(WORKER_URL, {
-      method:'PATCH',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(DATA_MANUAL)
-    });
-    if(!r.ok) throw new Error(`HTTP ${r.status}`);
-    setSyncStatus('ok');
-  }catch(e){
-    console.warn('No se pudo guardar en Worker:', e);
-    setSyncStatus('error');
-  }
-}
-
-function saveManual(){ saveToGist(); }
-
-function setSyncStatus(state){
-  const el = document.getElementById('sync-status');
-  if(!el) return;
-  if(state==='saving') el.innerHTML='<span style="color:var(--muted)">⏳ Guardando...</span>';
-  else if(state==='ok') el.innerHTML='<span style="color:var(--green)">✅ Sincronizado</span>';
-  else if(state==='loading') el.innerHTML='<span style="color:var(--accent)">🔄 Cargando datos...</span>';
-  else if(state==='error') el.innerHTML='<span style="color:var(--red)">⚠️ Error de sincronización (guardado local)</span>';
-}
-
-let DATA_MANUAL = loadLocal();
-function allData(){ return [...DATA_BANCO,...DATA_MANUAL]; }
-
-// ── ESTADO ──
-let tipoFilter='all', sortCol='fecha', sortDir=-1, currentPage=1;
-const PER_PAGE=25;
-const MESES=['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-
-// ── UTILS ──
-function parseDate(s){ const[d,m,y]=s.split('/'); return new Date(+y,+m-1,+d); }
-function fmtAbs(n){ return Math.abs(n).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2})+' €'; }
-function fmt(n){ return (n>=0?'+':'')+n.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2})+' €'; }
-
-function getYears(){
-  return [...new Set(allData().map(t=>parseDate(t.fecha).getFullYear()))].sort((a,b)=>b-a);
-}
-function fillYearSelects(){
-  const yrs=getYears();
-  [['res-year',false],['mov-year',true],['mens-year',false],['graf-year',false]].forEach(([id,addAll])=>{
-    const el=document.getElementById(id); if(!el)return;
-    const cur=el.value||String(yrs[0]);
-    el.innerHTML=(addAll?'<option value="">Todos</option>':'')+yrs.map(y=>`<option value="${y}" ${cur==y?'selected':''}>${y}</option>`).join('');
-  });
-}
-
-// ── NAV ──
-function showSection(name, btn){
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('sec-'+name).classList.add('active');
-  if(btn) btn.classList.add('active');
-  else document.querySelector(`.nav-tab[onclick*="${name}"]`)?.classList.add('active');
-  if(name==='resumen') renderResumen();
-  if(name==='movimientos') renderMovimientos();
-  if(name==='mensual') renderMensual();
-  if(name==='graficos') renderGraficos();
-  if(name==='añadir') renderAdded();
-}
-
-// ── RESUMEN ──
-// Saldo que había en la cuenta justo antes del primer movimiento registrado (12/10/2025)
-const SALDO_INICIAL = 8132.60;
-
-function calcSaldo(){
-  const all=allData();
-  const movimientos=all.reduce((s,t)=>s+(t.tipo.includes('I')?Math.abs(t.importe):-Math.abs(t.importe)),0);
-  return SALDO_INICIAL + movimientos;
-}
-
-function renderResumen(){
-  const saldo=calcSaldo();
-  document.getElementById('saldo-hero').innerHTML=`
-    <div style="background:linear-gradient(135deg,#1a2240,#1c2a52);border:1px solid var(--accent);border-radius:14px;padding:22px 26px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-      <div>
-        <div style="font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:5px">💳 Saldo actual</div>
-        <div style="font-size:34px;font-weight:800;letter-spacing:-1.5px;color:${saldo>=0?'var(--green)':'var(--red)'}">${saldo>=0?'':'-'}${fmtAbs(saldo)}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:3px">Acumulado de ${allData().length} movimientos</div>
-      </div>
-      <div style="text-align:right;font-size:12px;color:var(--muted)">
-        Actualizado<br><b style="color:var(--text)">${new Date().toLocaleDateString('es-ES')}</b>
-      </div>
-    </div>`;
-
-  const yr=+document.getElementById('res-year').value;
-  const mo=document.getElementById('res-month').value;
-  let data=allData().filter(t=>{
-    const d=parseDate(t.fecha);
-    if(yr&&d.getFullYear()!==yr)return false;
-    if(mo&&d.getMonth()+1!==+mo)return false;
-    return true;
-  });
-
-  const ing=data.filter(t=>t.tipo.includes('I')).reduce((s,t)=>s+Math.abs(t.importe),0);
-  const gas=data.filter(t=>t.tipo.includes('G')).reduce((s,t)=>s+Math.abs(t.importe),0);
-  const bal=ing-gas;
-  const lbl=mo?`${MESES[+mo]} ${yr}`:(yr?`Año ${yr}`:'Total');
-
-  document.getElementById('summary-cards').innerHTML=`
-    <div class="summary-card">
-      <div class="label">💰 Ingresos</div>
-      <div class="amount income">+${fmtAbs(ing)}</div>
-      <div class="sub">${lbl}</div>
-    </div>
-    <div class="summary-card">
-      <div class="label">💸 Gastos</div>
-      <div class="amount expense">-${fmtAbs(gas)}</div>
-      <div class="sub">${lbl}</div>
-    </div>
-    <div class="summary-card">
-      <div class="label">📊 Beneficio</div>
-      <div class="amount" style="color:${bal>=0?'var(--green)':'var(--red)'};font-size:26px;font-weight:700;letter-spacing:-1px">${bal>=0?'+':'-'}${fmtAbs(bal)}</div>
-      <div class="sub">${lbl}</div>
-    </div>`;
-
-  renderResumenExtras();
-}
-
-let chartResumenEvol = null;
-
-let rsTopInit = false;
-
-function renderResumenExtras(){
-  // ── Inicializar selectores año/mes (solo la primera vez) ──
-  if(!rsTopInit){
-    const hoy = new Date();
-    const yrs = getYears();
-    const selYear = document.getElementById('rs-top-year');
-    selYear.innerHTML = yrs.map(y=>`<option value="${y}" ${y===hoy.getFullYear()?'selected':''}>${y}</option>`).join('');
-    document.getElementById('rs-top-month').value = hoy.getMonth()+1;
-    rsTopInit = true;
-  }
-
-  // ── Evolución del saldo mes a mes (todo el año del filtro principal) ──
-  const yrEvol = +document.getElementById('res-year').value || new Date().getFullYear();
-  document.getElementById('rs-evol-anio').textContent = yrEvol;
-
-  const todos = allData().slice().sort((a,b)=>parseDate(a.fecha)-parseDate(b.fecha));
-
-  // Saldo acumulado hasta el 1 de enero del año seleccionado
-  let acumInicioAnio = SALDO_INICIAL;
-  todos.forEach(t=>{
-    if(parseDate(t.fecha) < new Date(yrEvol,0,1)) acumInicioAnio += (t.tipo.includes('I')?Math.abs(t.importe):-Math.abs(t.importe));
-  });
-
-  let acum = acumInicioAnio;
-  const labels=[], valores=[];
-  const hoyEvol = new Date();
-  const ultimoMesValido = (yrEvol < hoyEvol.getFullYear()) ? 11 : (yrEvol === hoyEvol.getFullYear() ? hoyEvol.getMonth() : -1);
-  for(let m=0; m<=ultimoMesValido; m++){
-    const enMes = todos.filter(t=>{ const d=parseDate(t.fecha); return d.getFullYear()===yrEvol && d.getMonth()===m; });
-    enMes.forEach(t=>{ acum += t.tipo.includes('I')?Math.abs(t.importe):-Math.abs(t.importe); });
-    labels.push(MESES[m+1]);
-    valores.push(+acum.toFixed(2));
-  }
-
-  if(chartResumenEvol) chartResumenEvol.destroy();
-  if(labels.length === 0){
-    document.getElementById('ch-resumen-evol').getContext('2d').clearRect(0,0,9999,9999);
-  } else {
-  chartResumenEvol = new Chart(document.getElementById('ch-resumen-evol'), {
-    type:'line',
-    data:{ labels, datasets:[{
-      data:valores, borderColor:'#4f8ef7', backgroundColor:'rgba(79,142,247,0.1)',
-      borderWidth:2, pointRadius:3, pointBackgroundColor:'#4f8ef7', pointHoverRadius:5, fill:true, tension:0.35
-    }]},
-    options:{
-      responsive:true,
-      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>' '+fmtAbs(ctx.parsed.y)+' €'}} },
-      scales:{
-        x:{ ticks:{color:'#6b7599'}, grid:{display:false} },
-        y:{ ticks:{color:'#6b7599', callback:v=>v.toLocaleString('es-ES')+'€'}, grid:{color:'rgba(42,48,80,0.4)'} }
-      }
-    }
-  });
-  }
-
-  // ── Mayores gastos del mes/año elegido ──
-  const mesSel = +document.getElementById('rs-top-month').value;
-  const anioSel = +document.getElementById('rs-top-year').value;
-  const gastosMes = allData()
-    .filter(t=>{ const d=parseDate(t.fecha); return t.tipo.includes('G') && d.getMonth()+1===mesSel && d.getFullYear()===anioSel; })
-    .sort((a,b)=>Math.abs(b.importe)-Math.abs(a.importe))
-    .slice(0,5);
-
-  if(gastosMes.length===0){
-    document.getElementById('rs-top-gastos').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0">Sin gastos en ese mes.</div>';
-  } else {
-    const max = Math.abs(gastosMes[0].importe);
-    document.getElementById('rs-top-gastos').innerHTML = gastosMes.map(t=>{
-      const pct = Math.max(8, (Math.abs(t.importe)/max)*100);
-      return `<div style="display:flex;align-items:center;gap:10px">
-        <div style="flex:0 0 150px;font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.nombre}</div>
-        <div style="flex:1;background:var(--surface2);border-radius:5px;height:18px;position:relative;overflow:hidden">
-          <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,#e85d6b,#f5a623);border-radius:5px"></div>
-        </div>
-        <div style="flex:0 0 75px;text-align:right;font-size:13px;font-weight:700;color:var(--red)">-${fmtAbs(t.importe)}</div>
-      </div>`;
-    }).join('');
-  }
-
-  // ── Últimos 5 movimientos (de todos, banco + manuales) ──
-  const ultimos = allData().slice().sort((a,b)=>parseDate(b.fecha)-parseDate(a.fecha)).slice(0,5);
-  if(ultimos.length===0){
-    document.getElementById('rs-ultimos').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0">No hay movimientos todavía.</div>';
-  } else {
-    document.getElementById('rs-ultimos').innerHTML = ultimos.map(t=>`
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 4px;border-bottom:1px solid rgba(42,48,80,.4)">
-        <div style="display:flex;flex-direction:column;gap:1px">
-          <span style="font-size:13px;font-weight:500">${t.nombre}</span>
-          <span style="font-size:11px;color:var(--muted)">${t.fecha}</span>
-        </div>
-        <span class="td-importe ${t.tipo.includes('G')?'gasto':'ingreso'}" style="font-size:14px">${t.tipo.includes('G')?'-':'+'}${fmtAbs(t.importe)}</span>
-      </div>`).join('');
-  }
-}
-
-function toggleDay(el){
-  const body=el.nextElementSibling;
-  const arrow=el.querySelector('.arrow');
-  body.classList.toggle('open');
-  arrow.textContent=body.classList.contains('open')?'▾':'▸';
-}
-
-// ── MOVIMIENTOS ──
-function setTipo(t,btn){
-  tipoFilter=t; currentPage=1;
-  document.querySelectorAll('#sec-movimientos .tipo-btn').forEach(b=>b.className='tipo-btn');
-  btn.classList.add('active-'+(t==='all'?'all':t==='income'?'income':'expense'));
-  renderMovimientos();
-}
-
-function sortTable(col){
-  if(sortCol===col)sortDir*=-1; else{sortCol=col;sortDir=-1;}
-  document.querySelectorAll('thead th').forEach(th=>th.classList.remove('sort-asc','sort-desc'));
-  const idx=['fecha','nombre','importe'].indexOf(col);
-  if(idx>=0) document.querySelectorAll('thead th')[idx].classList.add(sortDir===1?'sort-asc':'sort-desc');
-  renderMovimientos();
-}
-
-function getFilteredMov(){
-  const search=document.getElementById('search').value.toLowerCase();
-  const month=document.getElementById('mov-month').value;
-  const year=document.getElementById('mov-year').value;
-  return allData().filter(t=>{
-    const d=parseDate(t.fecha);
-    if(month&&d.getMonth()+1!==+month)return false;
-    if(year&&d.getFullYear()!==+year)return false;
-    if(tipoFilter==='income'&&!t.tipo.includes('I'))return false;
-    if(tipoFilter==='expense'&&!t.tipo.includes('G'))return false;
-    if(search&&!t.nombre.toLowerCase().includes(search))return false;
-    return true;
-  });
-}
-
-function renderMovimientos(){
-  let data=getFilteredMov();
-  data.sort((a,b)=>{
-    let va,vb;
-    if(sortCol==='fecha'){va=parseDate(a.fecha);vb=parseDate(b.fecha);}
-    else if(sortCol==='importe'){va=Math.abs(a.importe);vb=Math.abs(b.importe);}
-    else{va=a[sortCol];vb=b[sortCol];}
-    return va<vb?-sortDir:va>vb?sortDir:0;
-  });
-
-  const totalI=data.filter(t=>t.tipo.includes('I')).reduce((s,t)=>s+Math.abs(t.importe),0);
-  const totalG=data.filter(t=>t.tipo.includes('G')).reduce((s,t)=>s+Math.abs(t.importe),0);
-  const ingPart=totalI>0?`<span style="color:var(--green)">+${fmtAbs(totalI)}</span>`:'';
-  const gasPart=totalG>0?`<span style="color:var(--red)">-${fmtAbs(totalG)}</span>`:'';
-  const sep=ingPart&&gasPart?' · ':'';
-  document.getElementById('mov-count').innerHTML=`${data.length} mov.${ingPart||gasPart?' · ':''}${ingPart}${sep}${gasPart}`;
-
-  const totalPages=Math.max(1,Math.ceil(data.length/PER_PAGE));
-  if(currentPage>totalPages)currentPage=1;
-  const page=data.slice((currentPage-1)*PER_PAGE,currentPage*PER_PAGE);
-
-  document.getElementById('mov-tbody').innerHTML=page.map(t=>`
-    <tr>
-      <td class="td-fecha">${t.fecha}</td>
-      <td class="td-nombre">${t.nombre}${t.nota?`<br><small style="color:var(--muted)">${t.nota}</small>`:''}</td>
-      <td class="td-importe ${t.tipo.includes('G')?'gasto':'ingreso'}">${t.tipo.includes('G')?'-':'+'}${fmtAbs(t.importe)}</td>
-      <td class="td-tipo"><span class="${t.tipo.includes('G')?'badge-gasto':'badge-ingreso'}">${t.tipo.includes('G')?'Gasto':'Ingreso'}</span></td>
-    </tr>`).join('');
-
-  let pag=`<button class="page-btn" onclick="goPage(currentPage-1)" ${currentPage<=1?'disabled':''}>◀</button>`;
-  for(let i=Math.max(1,currentPage-3);i<=Math.min(totalPages,currentPage+3);i++)
-    pag+=`<button class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
-  pag+=`<button class="page-btn" onclick="goPage(currentPage+1)" ${currentPage>=totalPages?'disabled':''}>▶</button>`;
-  document.getElementById('pagination').innerHTML=pag;
-}
-
-function goPage(p){
-  const max=Math.max(1,Math.ceil(getFilteredMov().length/PER_PAGE));
-  currentPage=Math.max(1,Math.min(p,max));
-  renderMovimientos();
-}
-
-// ── MENSUAL ──
-function renderMensual(){
-  const yr=+document.getElementById('mens-year').value;
-  const data=allData().filter(t=>parseDate(t.fecha).getFullYear()===yr);
-  const byMonth={};
-  for(let m=1;m<=12;m++)byMonth[m]=[];
-  data.forEach(t=>{byMonth[parseDate(t.fecha).getMonth()+1].push(t);});
-
-  document.getElementById('months-grid').innerHTML=Object.entries(byMonth).map(([m,txs])=>{
-    const ing=txs.filter(t=>t.tipo.includes('I')).reduce((s,t)=>s+Math.abs(t.importe),0);
-    const gas=txs.filter(t=>t.tipo.includes('G')).reduce((s,t)=>s+Math.abs(t.importe),0);
-    const bal=ing-gas;
-    return `<div class="month-card" onclick="renderMonthDetail(${yr},${m},this)">
-      <div class="month-name">${MESES[m]}</div>
-      <div class="month-row"><span class="label">Ingresos</span><span style="color:var(--green)">+${fmtAbs(ing)}</span></div>
-      <div class="month-row"><span class="label">Gastos</span><span style="color:var(--red)">-${fmtAbs(gas)}</span></div>
-      <div class="month-balance"><span style="color:var(--muted);font-size:10px">BALANCE</span>
-        <span style="color:${bal>=0?'var(--green)':'var(--red)'}">${bal>=0?'+':'-'}${fmtAbs(bal)}</span>
-      </div></div>`;
-  }).join('');
-}
-
-function renderMonthDetail(yr,mo,card){
-  document.querySelectorAll('.month-card').forEach(c=>c.classList.remove('active'));
-  card.classList.add('active');
-  const data=allData().filter(t=>{const d=parseDate(t.fecha);return d.getFullYear()===yr&&d.getMonth()+1===mo;}).sort((a,b)=>parseDate(b.fecha)-parseDate(a.fecha));
-  const dayMap={};
-  data.forEach(t=>{if(!dayMap[t.fecha])dayMap[t.fecha]=[];dayMap[t.fecha].push(t);});
-  const ing=data.filter(t=>t.tipo.includes('I')).reduce((s,t)=>s+Math.abs(t.importe),0);
-  const gas=data.filter(t=>t.tipo.includes('G')).reduce((s,t)=>s+Math.abs(t.importe),0);
-  document.getElementById('month-detail').innerHTML=`
-    <div style="margin-top:18px">
-      <div style="display:flex;gap:14px;margin-bottom:14px;align-items:center;flex-wrap:wrap">
-        <h3 style="font-size:17px;font-weight:700">${MESES[mo]} ${yr}</h3>
-        <span style="color:var(--green)">+${fmtAbs(ing)}</span>
-        <span style="color:var(--red)">-${fmtAbs(gas)}</span>
-        <span style="color:${(ing-gas)>=0?'var(--green)':'var(--red)'}">${fmt(ing-gas)}</span>
-      </div>
-      <div class="day-list">
-        ${Object.entries(dayMap).sort((a,b)=>parseDate(b[0])-parseDate(a[0])).map(([day,txs])=>{
-          const gD=txs.filter(t=>t.tipo.includes('G')).reduce((s,t)=>s+Math.abs(t.importe),0);
-          const iD=txs.filter(t=>t.tipo.includes('I')).reduce((s,t)=>s+Math.abs(t.importe),0);
-          const[d2,m2]=day.split('/');
-          const wd=new Date(yr,mo-1,+d2).toLocaleDateString('es-ES',{weekday:'short'});
-          return `<div class="day-group">
-            <div class="day-group-header" onclick="toggleDay(this)">
-              <span><b>${wd.charAt(0).toUpperCase()+wd.slice(1)} ${d2}/${m2}</b> · ${txs.length} mov.</span>
-              <span style="display:flex;gap:12px;font-size:12px">
-                ${iD>0?`<span style="color:var(--green)">+${fmtAbs(iD)}</span>`:''}
-                ${gD>0?`<span style="color:var(--red)">-${fmtAbs(gD)}</span>`:''}
-                <span style="color:var(--muted);font-size:15px" class="arrow">▸</span>
-              </span>
-            </div>
-            <div class="day-transactions">
-              ${txs.map(t=>`<div class="day-tx">
-                <div class="day-tx-nombre">${t.nombre}</div>
-                <div class="td-importe ${t.tipo.includes('G')?'gasto':'ingreso'}">${t.tipo.includes('G')?'-':'+'}${fmtAbs(t.importe)}</div>
-              </div>`).join('')}
-            </div>
-          </div>`;
-        }).join('')}
-      </div>
-    </div>`;
-}
-
-// ── GRÁFICOS ──
-let charts={}, grafView='all';
-const CO={
-  tick:'#6b7599', grid:'rgba(42,48,80,0.5)', text:'#e8ecf5',
-  green:'rgba(46,204,138,0.82)', red:'rgba(232,93,107,0.82)', blue:'#4f8ef7',
-  eur: v=>v.toLocaleString('es-ES',{minimumFractionDigits:0})+'€'
-};
-function sc(){ return {
-  x:{ticks:{color:CO.tick},grid:{color:CO.grid}},
-  y:{ticks:{color:CO.tick,callback:CO.eur},grid:{color:CO.grid}}
-};}
-
-function setGrafView(v,btn){
-  grafView=v;
-  document.querySelectorAll('#sec-graficos .tipo-btn').forEach(b=>b.className='tipo-btn');
-  btn.classList.add('active-all');
-  document.getElementById('graf-all').style.display=v==='all'?'':'none';
-  document.getElementById('graf-month').style.display=v==='month'?'':'none';
-  renderGraficos();
-}
-
-function renderGraficos(){
-  const yr=+document.getElementById('graf-year').value;
-  const data=allData().filter(t=>parseDate(t.fecha).getFullYear()===yr);
-  const mI=new Array(12).fill(0), mG=new Array(12).fill(0);
-  data.forEach(t=>{ const m=parseDate(t.fecha).getMonth(); t.tipo.includes('I')?mI[m]+=Math.abs(t.importe):mG[m]+=Math.abs(t.importe); });
-  const labels=MESES.slice(1);
-  document.getElementById('gt-general').textContent=yr;
-
-  if(grafView==='all'){
-    if(charts.mensual)charts.mensual.destroy();
-    charts.mensual=new Chart(document.getElementById('ch-mensual'),{type:'bar',data:{labels,datasets:[
-      {label:'Ingresos',data:mI,backgroundColor:CO.green,borderRadius:5,borderSkipped:false},
-      {label:'Gastos',data:mG,backgroundColor:CO.red,borderRadius:5,borderSkipped:false}
-    ]},options:{responsive:true,plugins:{legend:{labels:{color:CO.text,usePointStyle:true,pointStyle:'circle'}}},scales:sc()}});
-
-    const bal=mI.map((v,i)=>+(v-mG[i]).toFixed(2));
-    if(charts.balance)charts.balance.destroy();
-    charts.balance=new Chart(document.getElementById('ch-balance'),{type:'bar',data:{labels,datasets:[{
-      label:'Balance',data:bal,backgroundColor:bal.map(v=>v>=0?CO.green:CO.red),borderRadius:5,borderSkipped:false
-    }]},options:{responsive:true,plugins:{legend:{display:false}},scales:sc()}});
-
-  }
-  if(grafView==='month') renderGrafMonth();
-}
-
-function renderGrafMonth(){
-  const yr=+document.getElementById('graf-year').value;
-  const mo=+document.getElementById('graf-month-sel').value;
-  document.getElementById('gt-month').textContent=MESES[mo]+' '+yr;
-  const data=allData().filter(t=>{const d=parseDate(t.fecha);return d.getFullYear()===yr&&d.getMonth()+1===mo;});
-  const dayMap={};
-  data.filter(t=>t.tipo.includes('G')).forEach(t=>{const d=t.fecha.split('/')[0];dayMap[d]=(dayMap[d]||0)+Math.abs(t.importe);});
-  const dim=new Date(yr,mo,0).getDate();
-  const dl=Array.from({length:dim},(_,i)=>String(i+1).padStart(2,'0'));
-  if(charts.daily)charts.daily.destroy();
-  charts.daily=new Chart(document.getElementById('ch-daily'),{type:'bar',data:{labels:dl,datasets:[{
-    label:'Gastos',data:dl.map(d=>+(dayMap[d]||0).toFixed(2)),backgroundColor:CO.red,borderRadius:4,borderSkipped:false
-  }]},options:{responsive:true,plugins:{legend:{display:false}},scales:sc()}});
-}
-
-// ── AÑADIR ──
-function addTransaction(){
-  const tipo=document.querySelector('input[name="new-tipo"]:checked').value;
-  const nombre=document.getElementById('new-nombre').value.trim();
-  const importeVal=parseFloat(document.getElementById('new-importe').value);
-  const nota=document.getElementById('new-nota').value.trim();
-  const fechaRaw=document.getElementById('new-fecha').value;
-  if(!fechaRaw){showToast('Indica la fecha',true);return;}
-  if(!nombre){showToast('Indica el concepto',true);return;}
-  if(!importeVal||importeVal<=0){showToast('Importe inválido',true);return;}
-  const[y,m,d]=fechaRaw.split('-');
-  const importe=tipo.includes('G')?-importeVal:importeVal;
-  DATA_MANUAL.push({fecha:`${d}/${m}/${y}`,nombre,importe,tipo,nota,manual:true});
-  DATA_MANUAL.sort((a,b)=>parseDate(b.fecha)-parseDate(a.fecha));
-  saveManual();
-  document.getElementById('new-nombre').value='';
-  document.getElementById('new-importe').value='';
-  document.getElementById('new-nota').value='';
-  fillYearSelects();
-  renderAdded();
-  renderResumen();
-  actualizarBackupInfo();
-  showToast('✅ Transacción añadida');
-}
-
-function renderAdded(){
-  const wrap=document.getElementById('added-wrap');
-  if(!DATA_MANUAL.length){wrap.style.display='none';return;}
-  wrap.style.display='block';
-  const tI=DATA_MANUAL.filter(t=>t.tipo.includes('I')).reduce((s,t)=>s+Math.abs(t.importe),0);
-  const tG=DATA_MANUAL.filter(t=>t.tipo.includes('G')).reduce((s,t)=>s+Math.abs(t.importe),0);
-  document.getElementById('added-count').innerHTML=`${DATA_MANUAL.length} mov. · <span style="color:var(--green)">+${fmtAbs(tI)}</span> · <span style="color:var(--red)">-${fmtAbs(tG)}</span>`;
-  document.getElementById('added-tbody').innerHTML=DATA_MANUAL.map((t,i)=>`
-    <tr>
-      <td class="td-fecha">${t.fecha}</td>
-      <td class="td-nombre">${t.nombre}${t.nota?`<br><small style="color:var(--muted)">${t.nota}</small>`:''}</td>
-      <td class="td-importe ${t.tipo.includes('G')?'gasto':'ingreso'}">${t.tipo.includes('G')?'-':'+'}${fmtAbs(t.importe)}</td>
-      <td class="td-tipo"><span class="${t.tipo.includes('G')?'badge-gasto':'badge-ingreso'}">${t.tipo.includes('G')?'Gasto':'Ingreso'}</span></td>
-      <td style="display:flex;gap:5px;padding:10px 14px">
-        <button onclick="openEdit(${i})" style="background:var(--accent);border:none;color:#fff;padding:4px 9px;border-radius:4px;cursor:pointer;font-size:11px">✏️</button>
-        <button onclick="removeManual(${i})" style="background:var(--red);border:none;color:#fff;padding:4px 9px;border-radius:4px;cursor:pointer;font-size:11px">🗑</button>
-      </td>
-    </tr>`).join('');
-}
-
-function removeManual(i){DATA_MANUAL.splice(i,1);setSyncStatus('saving');saveManual();fillYearSelects();renderAdded();renderResumen();actualizarBackupInfo();showToast('Transacción eliminada');}
-
-// ── EDICIÓN ──
-function openEdit(i){
-  const t=DATA_MANUAL[i];
-  document.getElementById('edit-idx').value=i;
-  const[d,m,y]=t.fecha.split('/');
-  document.getElementById('edit-fecha').value=`${y}-${m}-${d}`;
-  document.getElementById('edit-nombre').value=t.nombre;
-  document.getElementById('edit-importe').value=Math.abs(t.importe);
-  document.getElementById('edit-nota').value=t.nota||'';
-  document.getElementById(t.tipo.includes('G')?'er-gasto':'er-ingreso').checked=true;
-  document.getElementById('edit-modal').style.display='flex';
-}
-function closeEdit(){document.getElementById('edit-modal').style.display='none';}
-function saveEdit(){
-  const i=+document.getElementById('edit-idx').value;
-  const tipo=document.querySelector('input[name="edit-tipo"]:checked').value;
-  const nombre=document.getElementById('edit-nombre').value.trim();
-  const importeVal=parseFloat(document.getElementById('edit-importe').value);
-  const nota=document.getElementById('edit-nota').value.trim();
-  const fr=document.getElementById('edit-fecha').value;
-  if(!nombre||!importeVal||!fr){showToast('Rellena todos los campos',true);return;}
-  const[y,m,d]=fr.split('-');
-  DATA_MANUAL[i]={...DATA_MANUAL[i],fecha:`${d}/${m}/${y}`,nombre,importe:tipo.includes('G')?-importeVal:importeVal,tipo,nota};
-  DATA_MANUAL.sort((a,b)=>parseDate(b.fecha)-parseDate(a.fecha));
-  setSyncStatus('saving');saveManual();closeEdit();fillYearSelects();renderAdded();renderResumen();actualizarBackupInfo();showToast('✅ Guardado');
-}
-document.getElementById('edit-modal').addEventListener('click',function(e){if(e.target===this)closeEdit();});
-
-// ── EXPORTAR / IMPORTAR ──
-function exportarDatos(){
-  if(!DATA_MANUAL.length){ showToast('No hay datos manuales que exportar', true); return; }
-  const blob = new Blob([JSON.stringify(DATA_MANUAL, null, 2)], {type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'misfinanzas_backup_' + new Date().toISOString().slice(0,10) + '.json';
-  a.click();
-  showToast('✅ Backup exportado correctamente');
-}
-
-function importarDatos(e){
-  const file = e.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    try {
-      const datos = JSON.parse(ev.target.result);
-      if(!Array.isArray(datos)) throw new Error('Formato incorrecto');
-      DATA_MANUAL = datos;
-      saveManual();
-      fillYearSelects();
-      renderAdded();
-      renderResumen();
-      actualizarBackupInfo();
-      showToast(`✅ ${datos.length} transacciones importadas`);
-    } catch(err) {
-      showToast('❌ Error al importar: archivo no válido', true);
-    }
-    e.target.value = '';
-  };
-  reader.readAsText(file);
-}
-
-function actualizarBackupInfo(){
-  const el = document.getElementById('backup-info');
-  if(!el) return;
-  el.textContent = DATA_MANUAL.length > 0
-    ? `${DATA_MANUAL.length} transacciones guardadas localmente`
-    : 'Sin datos manuales guardados';
-}
-
-// ── TOAST ──
-function showToast(msg,error=false){
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.className='toast'+(error?' error':'')+' show';
-  setTimeout(()=>t.className='toast'+(error?' error':''),2800);
-}
-
-// ── RELOJ MADRID ──
+// ── Reloj Madrid ──
 function updateClock(){
-  const now = new Date();
-  const fmt = new Intl.DateTimeFormat('es-ES', {
-    timeZone: 'Europe/Madrid',
-    weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+  const fmt = new Intl.DateTimeFormat('es-ES',{
+    timeZone:'Europe/Madrid',weekday:'short',day:'2-digit',month:'2-digit',
+    year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false
   });
-  const parts = fmt.formatToParts(now);
-  const get = type => parts.find(p=>p.type===type)?.value || '';
-  let wd = get('weekday'); wd = wd.charAt(0).toUpperCase()+wd.slice(1).replace('.','');
-  document.getElementById('nav-clock').textContent =
-    `${wd} ${get('day')}/${get('month')}/${get('year')} · ${get('hour')}:${get('minute')}:${get('second')}`;
+  const parts = fmt.formatToParts(new Date());
+  const g = t => parts.find(p=>p.type===t)?.value||'';
+  let wd=g('weekday'); wd=wd.charAt(0).toUpperCase()+wd.slice(1).replace('.','');
+  document.getElementById('portal-clock').textContent=`${wd} ${g('day')}/${g('month')}/${g('year')} · ${g('hour')}:${g('minute')}:${g('second')}`;
 }
+updateClock(); setInterval(updateClock,1000);
 
-// ── INIT ──
-async function init(){
-  fillYearSelects();
-  document.getElementById('new-fecha').value=new Date().toISOString().split('T')[0];
-  renderResumen();
-  updateClock();
-  setInterval(updateClock, 1000);
-  actualizarBackupInfo();
+// ── Iconos flotantes ──
+const finEmojis=['💶','💵','📊','💰','📈','💳','🏦','💎'];
+const futEmojis=['⚽','🥅','👟','🏆','🎽','📋','🔵','⚡'];
+function spawnFloats(containerId, emojis){
+  const el=document.getElementById(containerId);
+  setInterval(()=>{
+    const span=document.createElement('span');
+    span.className='fi';
+    span.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+    span.style.left=Math.random()*90+'%';
+    span.style.animationDuration=(6+Math.random()*6)+'s';
+    span.style.animationDelay='0s';
+    el.appendChild(span);
+    setTimeout(()=>span.remove(),13000);
+  },700);
+}
+spawnFloats('fi-finanzas',finEmojis);
+spawnFloats('fi-futbol',futEmojis);
 
-  // Cargar datos desde Gist
-  setSyncStatus('loading');
-  try {
-    const remoto = await loadFromGist();
-    // Usar remoto solo si tiene datos O si local está vacío
-    // Nunca sobreescribir datos locales con un array vacío del Gist
-    if(remoto.length > 0 || DATA_MANUAL.length === 0){
-      DATA_MANUAL = remoto;
-      saveLocal();
+// ── Partículas de fondo ──
+const canvas=document.getElementById('particles');
+const ctx=canvas.getContext('2d');
+let W,H,pts=[];
+function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}
+resize(); window.addEventListener('resize',resize);
+for(let i=0;i<80;i++) pts.push({
+  x:Math.random()*2000,y:Math.random()*2000,
+  vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,
+  r:Math.random()*1.5+.5,a:Math.random()
+});
+function drawParticles(){
+  ctx.clearRect(0,0,W,H);
+  pts.forEach(p=>{
+    p.x+=p.vx;p.y+=p.vy;
+    if(p.x<0)p.x=W;if(p.x>W)p.x=0;
+    if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(79,142,247,${p.a*0.4})`;ctx.fill();
+  });
+  // Líneas entre partículas cercanas
+  for(let i=0;i<pts.length;i++) for(let j=i+1;j<pts.length;j++){
+    const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y;
+    const d=Math.sqrt(dx*dx+dy*dy);
+    if(d<120){
+      ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);
+      ctx.strokeStyle=`rgba(79,142,247,${(1-d/120)*0.08})`;ctx.lineWidth=.5;ctx.stroke();
     }
-    setSyncStatus('ok');
-  } catch(e) {
-    setSyncStatus('error');
   }
-  fillYearSelects();
-  renderAdded();
-  renderResumen();
-  actualizarBackupInfo();
+  requestAnimationFrame(drawParticles);
 }
-init();
-</script>
-<script>
-if('serviceWorker' in navigator){
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js')
-      .then(() => console.log('SW registrado'))
-      .catch(e => console.warn('SW error:', e));
-  });
-}
+drawParticles();
 </script>
 </body>
 </html>
