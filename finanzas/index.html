@@ -194,8 +194,8 @@ canvas{max-width:100%}
     <button class="nav-tab" onclick="showSection('movimientos',this)">Movimientos</button>
     <button class="nav-tab" onclick="showSection('mensual',this)">Por Mes</button>
     <button class="nav-tab" onclick="showSection('graficos',this)">Gráficos</button>
-    <button class="nav-tab" onclick="showSection('cobros',this)">💰 Cobros</button>
     <button class="nav-tab" onclick="showSection('añadir',this)">+ Añadir</button>
+    <button class="nav-tab" onclick="showSection('cobros',this)">+ Cobros</button>
   </div>
   <div id="nav-clock" style="font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;margin-left:12px"></div>
 </nav>
@@ -433,29 +433,31 @@ canvas{max-width:100%}
 
 <!-- ── COBROS ── -->
 <div class="section" id="sec-cobros">
-  <div style="background:linear-gradient(135deg,#1a2a0a,#253a0f);border:1px solid rgba(46,204,138,.25);border-radius:14px;padding:18px 22px;margin-bottom:18px;display:flex;align-items:center;gap:14px">
-    <span style="font-size:40px">💸</span>
-    <div>
-      <div style="font-size:18px;font-weight:800;margin-bottom:2px">Pagos pendientes de cobro</div>
-      <div style="font-size:12px;color:var(--muted)">Dinero que te deben a ti</div>
-    </div>
-    <div style="margin-left:auto;text-align:right">
-      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px">Total pendiente</div>
-      <div id="cobros-total-big" style="font-size:28px;font-weight:800;color:var(--green)">0,00 €</div>
-    </div>
-  </div>
 
   <div class="add-form">
-    <h3 style="font-size:13px;font-weight:600;margin-bottom:14px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px">➕ Añadir pago pendiente</h3>
+    <h3>+ Cobro pendiente</h3>
     <div class="form-grid">
-      <div class="form-field"><label>Persona</label><input id="cob-persona" placeholder="Ej: Juan"></div>
-      <div class="form-field"><label>Cantidad (€)</label><input type="number" id="cob-cantidad" placeholder="Ej: 50" step="0.01" min="0.01"></div>
-      <div class="form-field" style="grid-column:1/-1"><label>Motivo</label><input id="cob-motivo" placeholder="Ej: Cena del viernes"></div>
+      <div class="form-field">
+        <label>Persona</label>
+        <input id="cob-persona" placeholder="Ej: Juan">
+      </div>
+      <div class="form-field">
+        <label>Cantidad (€)</label>
+        <input type="number" id="cob-cantidad" placeholder="45.50" step="0.01" min="0.01">
+      </div>
+      <div class="form-field">
+        <label>Motivo</label>
+        <input id="cob-motivo" placeholder="Ej: Cena del viernes">
+      </div>
+      <div class="form-field">
+        <label>Fecha</label>
+        <input type="date" id="cob-fecha">
+      </div>
     </div>
     <button class="btn-add" onclick="addCobro()">Añadir cobro pendiente</button>
   </div>
 
-  <div class="table-wrap" id="cobros-wrap">
+  <div class="table-wrap">
     <div class="table-header">
       <span class="table-title">Pendiente de cobrar</span>
       <span class="table-count" id="cobros-count"></span>
@@ -1122,22 +1124,26 @@ function totalCobros(){
 }
 
 function addCobro(){
-  const persona = document.getElementById('cob-persona').value.trim();
+  const persona  = document.getElementById('cob-persona').value.trim();
   const cantidad = parseFloat(document.getElementById('cob-cantidad').value);
-  const motivo = document.getElementById('cob-motivo').value.trim();
+  const motivo   = document.getElementById('cob-motivo').value.trim();
+  const fechaRaw = document.getElementById('cob-fecha').value;
   if(!persona){ showToast('Indica la persona',true); return; }
   if(!cantidad||cantidad<=0){ showToast('Indica una cantidad válida',true); return; }
+  if(!fechaRaw){ showToast('Indica la fecha',true); return; }
+  const[y,m,d]=fechaRaw.split('-');
   COBROS.push({
     id: Date.now(),
     persona, cantidad, motivo,
-    fecha: new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'})
+    fecha: `${d}/${m}/${y}`
   });
   saveCobros();
   document.getElementById('cob-persona').value='';
   document.getElementById('cob-cantidad').value='';
   document.getElementById('cob-motivo').value='';
+  document.getElementById('cob-fecha').value=new Date().toISOString().split('T')[0];
   renderCobros();
-  renderResumen(); // actualizar saldo
+  renderResumen();
   showToast('✅ Cobro añadido');
 }
 
@@ -1150,11 +1156,27 @@ function removeCobro(id){
 }
 
 function marcarCobrado(id){
+  const cobro = COBROS.find(c=>c.id===id);
+  if(!cobro) return;
+  // Añadir como transacción ingreso en DATA_MANUAL (editable y eliminable)
+  DATA_MANUAL.push({
+    fecha: cobro.fecha,
+    nombre: `Cobro · ${cobro.persona}${cobro.motivo?' — '+cobro.motivo:''}`,
+    importe: Math.abs(cobro.cantidad),
+    tipo: 'Ingreso (I)',
+    nota: cobro.motivo || '',
+    manual: true
+  });
+  DATA_MANUAL.sort((a,b)=>parseDate(b.fecha)-parseDate(a.fecha));
+  saveManual();
+  // Eliminar de cobros pendientes
   COBROS = COBROS.filter(c=>c.id!==id);
   saveCobros();
+  fillYearSelects();
+  renderAdded();
   renderCobros();
   renderResumen();
-  showToast('✅ ¡Cobrado!');
+  showToast('✅ ¡Cobrado! Añadido como ingreso en movimientos');
 }
 
 function renderCobros(){
@@ -1183,7 +1205,7 @@ function renderCobros(){
           <td class="td-fecha">${c.fecha}</td>
           <td style="display:flex;gap:5px;padding:10px 14px">
             <button onclick="marcarCobrado(${c.id})" title="Marcar como cobrado"
-              style="background:var(--green);border:none;color:#fff;padding:4px 9px;border-radius:4px;cursor:pointer;font-size:11px">✓ Cobrado</button>
+              style="background:var(--green);border:none;color:#fff;padding:4px 9px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600">✓ Cobrado</button>
             <button onclick="removeCobro(${c.id})" title="Eliminar"
               style="background:var(--red);border:none;color:#fff;padding:4px 9px;border-radius:4px;cursor:pointer;font-size:11px">🗑</button>
           </td>
@@ -1240,6 +1262,7 @@ function updateClock(){
 async function init(){
   fillYearSelects();
   document.getElementById('new-fecha').value=new Date().toISOString().split('T')[0];
+  document.getElementById('cob-fecha').value=new Date().toISOString().split('T')[0];
   renderResumen();
   updateClock();
   setInterval(updateClock, 1000);
