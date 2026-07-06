@@ -194,6 +194,7 @@ canvas{max-width:100%}
     <button class="nav-tab" onclick="showSection('movimientos',this)">Movimientos</button>
     <button class="nav-tab" onclick="showSection('mensual',this)">Por Mes</button>
     <button class="nav-tab" onclick="showSection('graficos',this)">Gráficos</button>
+    <button class="nav-tab" onclick="showSection('cobros',this)">💰 Cobros</button>
     <button class="nav-tab" onclick="showSection('añadir',this)">+ Añadir</button>
   </div>
   <div id="nav-clock" style="font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;margin-left:12px"></div>
@@ -204,6 +205,7 @@ canvas{max-width:100%}
 <!-- ── RESUMEN ── -->
 <div class="section active" id="sec-resumen">
   <div id="saldo-hero" style="margin-bottom:18px"></div>
+  <div id="cobros-resumen" style="margin-bottom:16px"></div>
   <div class="filters" style="margin-bottom:14px">
     <div class="filter-group">
       <div class="filter-label">Año:</div>
@@ -429,6 +431,48 @@ canvas{max-width:100%}
   </div>
 </div>
 
+<!-- ── COBROS ── -->
+<div class="section" id="sec-cobros">
+  <div style="background:linear-gradient(135deg,#1a2a0a,#253a0f);border:1px solid rgba(46,204,138,.25);border-radius:14px;padding:18px 22px;margin-bottom:18px;display:flex;align-items:center;gap:14px">
+    <span style="font-size:40px">💸</span>
+    <div>
+      <div style="font-size:18px;font-weight:800;margin-bottom:2px">Pagos pendientes de cobro</div>
+      <div style="font-size:12px;color:var(--muted)">Dinero que te deben a ti</div>
+    </div>
+    <div style="margin-left:auto;text-align:right">
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px">Total pendiente</div>
+      <div id="cobros-total-big" style="font-size:28px;font-weight:800;color:var(--green)">0,00 €</div>
+    </div>
+  </div>
+
+  <div class="add-form">
+    <h3 style="font-size:13px;font-weight:600;margin-bottom:14px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px">➕ Añadir pago pendiente</h3>
+    <div class="form-grid">
+      <div class="form-field"><label>Persona</label><input id="cob-persona" placeholder="Ej: Juan"></div>
+      <div class="form-field"><label>Cantidad (€)</label><input type="number" id="cob-cantidad" placeholder="Ej: 50" step="0.01" min="0.01"></div>
+      <div class="form-field" style="grid-column:1/-1"><label>Motivo</label><input id="cob-motivo" placeholder="Ej: Cena del viernes"></div>
+    </div>
+    <button class="btn-add" onclick="addCobro()">Añadir cobro pendiente</button>
+  </div>
+
+  <div class="table-wrap" id="cobros-wrap">
+    <div class="table-header">
+      <span class="table-title">Pendiente de cobrar</span>
+      <span class="table-count" id="cobros-count"></span>
+    </div>
+    <table>
+      <thead><tr>
+        <th>Persona</th>
+        <th>Motivo</th>
+        <th style="text-align:right">Cantidad</th>
+        <th>Fecha</th>
+        <th></th>
+      </tr></thead>
+      <tbody id="cobros-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
 </div><!-- /container -->
 
 <!-- MODAL EDITAR -->
@@ -553,6 +597,7 @@ function showSection(name, btn){
   if(name==='movimientos') renderMovimientos();
   if(name==='mensual') renderMensual();
   if(name==='graficos') renderGraficos();
+  if(name==='cobros') renderCobros();
   if(name==='añadir') renderAdded();
 }
 
@@ -563,7 +608,8 @@ const SALDO_INICIAL = 8132.60;
 function calcSaldo(){
   const all=allData();
   const movimientos=all.reduce((s,t)=>s+(t.tipo.includes('I')?Math.abs(t.importe):-Math.abs(t.importe)),0);
-  return SALDO_INICIAL + movimientos;
+  const pendienteCobro=totalCobros();
+  return SALDO_INICIAL + movimientos + pendienteCobro;
 }
 
 function renderResumen(){
@@ -1043,6 +1089,138 @@ function showToast(msg,error=false){
   setTimeout(()=>t.className='toast'+(error?' error':''),2800);
 }
 
+// ── COBROS ──
+const LS_COBROS = 'misfinanzas_cobros_v1';
+let COBROS = [];
+
+async function loadCobros(){
+  try{
+    const r = await fetch(WORKER_URL+'/cobros');
+    if(r.ok){ COBROS = await r.json(); saveLocalCobros(); }
+    else throw new Error();
+  }catch(e){
+    try{ COBROS = JSON.parse(localStorage.getItem(LS_COBROS)||'[]'); }catch(e2){ COBROS=[]; }
+  }
+}
+
+async function saveCobros(){
+  localStorage.setItem(LS_COBROS, JSON.stringify(COBROS));
+  try{
+    await fetch(WORKER_URL+'/cobros',{
+      method:'PATCH',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(COBROS)
+    });
+  }catch(e){ console.warn('No se pudo sincronizar cobros'); }
+}
+
+function saveLocalCobros(){
+  localStorage.setItem(LS_COBROS, JSON.stringify(COBROS));
+}
+
+function totalCobros(){
+  return COBROS.reduce((s,c)=>s+parseFloat(c.cantidad||0),0);
+}
+
+function addCobro(){
+  const persona = document.getElementById('cob-persona').value.trim();
+  const cantidad = parseFloat(document.getElementById('cob-cantidad').value);
+  const motivo = document.getElementById('cob-motivo').value.trim();
+  if(!persona){ showToast('Indica la persona',true); return; }
+  if(!cantidad||cantidad<=0){ showToast('Indica una cantidad válida',true); return; }
+  COBROS.push({
+    id: Date.now(),
+    persona, cantidad, motivo,
+    fecha: new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'})
+  });
+  saveCobros();
+  document.getElementById('cob-persona').value='';
+  document.getElementById('cob-cantidad').value='';
+  document.getElementById('cob-motivo').value='';
+  renderCobros();
+  renderResumen(); // actualizar saldo
+  showToast('✅ Cobro añadido');
+}
+
+function removeCobro(id){
+  COBROS = COBROS.filter(c=>c.id!==id);
+  saveCobros();
+  renderCobros();
+  renderResumen();
+  showToast('Cobro eliminado');
+}
+
+function marcarCobrado(id){
+  COBROS = COBROS.filter(c=>c.id!==id);
+  saveCobros();
+  renderCobros();
+  renderResumen();
+  showToast('✅ ¡Cobrado!');
+}
+
+function renderCobros(){
+  const total = totalCobros();
+
+  // Actualizar total grande en sección cobros
+  const bigEl = document.getElementById('cobros-total-big');
+  if(bigEl) bigEl.textContent = fmtAbs(total);
+
+  // Count
+  const countEl = document.getElementById('cobros-count');
+  if(countEl) countEl.textContent = COBROS.length === 0 ? 'Sin pendientes' :
+    `${COBROS.length} pendiente${COBROS.length>1?'s':''} · ${fmtAbs(total)}`;
+
+  // Tabla
+  const tbody = document.getElementById('cobros-tbody');
+  if(tbody){
+    if(!COBROS.length){
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">Sin pagos pendientes 🎉</td></tr>`;
+    } else {
+      tbody.innerHTML = COBROS.map(c=>`
+        <tr>
+          <td style="font-weight:700">${c.persona}</td>
+          <td style="color:var(--muted)">${c.motivo||'—'}</td>
+          <td class="td-importe ingreso" style="text-align:right">+${fmtAbs(c.cantidad)}</td>
+          <td class="td-fecha">${c.fecha}</td>
+          <td style="display:flex;gap:5px;padding:10px 14px">
+            <button onclick="marcarCobrado(${c.id})" title="Marcar como cobrado"
+              style="background:var(--green);border:none;color:#fff;padding:4px 9px;border-radius:4px;cursor:pointer;font-size:11px">✓ Cobrado</button>
+            <button onclick="removeCobro(${c.id})" title="Eliminar"
+              style="background:var(--red);border:none;color:#fff;padding:4px 9px;border-radius:4px;cursor:pointer;font-size:11px">🗑</button>
+          </td>
+        </tr>`).join('');
+    }
+  }
+
+  // Mini resumen en pestaña Resumen
+  const resEl = document.getElementById('cobros-resumen');
+  if(resEl){
+    if(!COBROS.length){
+      resEl.innerHTML='';
+    } else {
+      resEl.innerHTML=`
+        <div style="background:linear-gradient(135deg,#0d1f0a,#152b0f);border:1px solid rgba(46,204,138,.3);border-radius:12px;padding:14px 18px;cursor:pointer"
+          onclick="document.querySelector('.nav-tab[onclick*=cobros]').click()">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font-size:24px">💸</span>
+              <div>
+                <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:2px">Pendiente de cobrar</div>
+                <div style="font-size:20px;font-weight:800;color:var(--green)">+${fmtAbs(total)}</div>
+              </div>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              ${COBROS.slice(0,3).map(c=>`
+                <div style="background:rgba(46,204,138,.1);border:1px solid rgba(46,204,138,.2);border-radius:6px;padding:4px 10px;font-size:12px">
+                  <b>${c.persona}</b> · ${fmtAbs(c.cantidad)}
+                </div>`).join('')}
+              ${COBROS.length>3?`<div style="font-size:12px;color:var(--muted);padding:4px 6px">+${COBROS.length-3} más</div>`:''}
+            </div>
+          </div>
+        </div>`;
+    }
+  }
+}
+
 // ── RELOJ MADRID ──
 function updateClock(){
   const now = new Date();
@@ -1068,6 +1246,8 @@ async function init(){
   actualizarBackupInfo();
 
   // Cargar datos desde Gist
+  await loadCobros();
+  renderCobros();
   setSyncStatus('loading');
   try {
     const remoto = await loadFromGist();
