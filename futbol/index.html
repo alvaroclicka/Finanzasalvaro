@@ -194,7 +194,7 @@ td{padding:10px 12px;font-size:13px;vertical-align:middle}
   <div class="section-hero hero-leganes">
     <div class="hero-left">
       <img class="escudo" id="escudo-img"
-        src="https://media.api-sports.io/football/teams/728.png"
+        src="https://images.fotmob.com/image_resources/logo/teamlogo/7854_large.png"
         onerror="this.style.display='none';document.getElementById('escudo-fallback').style.display='block'"
         alt="Leganés">
       <span class="escudo-fallback" id="escudo-fallback" style="display:none">🔵</span>
@@ -319,9 +319,7 @@ td{padding:10px 12px;font-size:13px;vertical-align:middle}
 
 <script>
 const WORKER   = 'https://misfinanzas-api.alvarohenche15.workers.dev';
-const FD_KEY   = '57893542bamsh6aa37a98eeb3aa5p1c1d16jsn2e615935fdbb';
-const FD_HOST  = 'free-api-live-football-data.p.rapidapi.com';
-const LEGANES_ID = 2616; // ID en API-Football/RapidAPI
+const LEGANES_FOTMOB_ID_CONST = 7854; // FotMob ID del Leganés
 
 // ── Reloj ──
 function updateClock(){
@@ -382,167 +380,232 @@ async function gistSave(section,data){
 }
 
 // ══════════════════════════
-// LEGANÉS — API-Football
+// LEGANÉS — FotMob
 // ══════════════════════════
-let LEGANES_MATCHES=[];
+const LEGANES_FOTMOB_ID = 7854;
+let LEGANES_MATCHES = [];
+let leganesRefreshInterval = null;
 
 async function loadLeganes(){
-  const list=document.getElementById('leganes-list');
-  list.innerHTML='<div class="loading"><span class="spinner"></span>Cargando partidos del Leganés...</div>';
+  const list = document.getElementById('leganes-list');
+  list.innerHTML = '<div class="loading"><span class="spinner"></span>Cargando partidos del Leganés...</div>';
+  await fetchLeganes();
+  // Actualizar cada 60 segundos automáticamente
+  if(leganesRefreshInterval) clearInterval(leganesRefreshInterval);
+  leganesRefreshInterval = setInterval(fetchLeganes, 60000);
+}
+
+async function fetchLeganes(){
   try{
-    // Buscar partidos de la temporada actual (2025)
-    const seasons=[2025,2024];
-    let allMatches=[];
-    for(const season of seasons){
-      try{
-        const r=await fetch(
-          `https://free-api-live-football-data.p.rapidapi.com/football-get-all-fixtures-by-team-by-season?teamid=${LEGANES_ID}&season=${season}`,
-          {headers:{'x-rapidapi-key':FD_KEY,'x-rapidapi-host':FD_HOST}}
-        );
-        if(!r.ok) continue;
-        const d=await r.json();
-        const matches=(d.response||d.fixtures||d.data||[]);
-        allMatches=[...allMatches,...matches];
-        if(matches.length>5) break; // si encontramos datos de esta temporada, paramos
-      }catch(e){console.warn('Season '+season+' failed',e);}
+    // FotMob API: fixtures del equipo
+    const r = await fetch(
+      `https://www.fotmob.com/api/teams?id=${LEGANES_FOTMOB_ID}&tab=fixtures&type=team&timeZone=Europe/Madrid`,
+      { headers: { 'Accept': 'application/json' } }
+    );
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+
+    // Extraer partidos de todas las competiciones
+    const allMatches = [];
+    const fixtures = data?.fixtures?.allFixtures?.fixtures || data?.fixtures || [];
+
+    (Array.isArray(fixtures) ? fixtures : []).forEach(match => {
+      allMatches.push(match);
+    });
+
+    // Si no hay fixtures directos, buscar en el formato alternativo
+    if(allMatches.length === 0){
+      const sections = data?.fixtures?.allFixtures?.nextMatch
+        ? [data.fixtures.allFixtures.nextMatch, ...(data.fixtures.allFixtures.fixtures||[])]
+        : [];
+      sections.forEach(m => allMatches.push(m));
     }
-    LEGANES_MATCHES=allMatches;
+
+    LEGANES_MATCHES = allMatches;
     renderLeganes();
-  }catch(e){
-    list.innerHTML=`<div class="loading">⚠️ Error cargando partidos: ${e.message}</div>`;
+  } catch(e) {
+    // Fallback: usar la API de FotMob directamente
+    try {
+      const r2 = await fetch(`https://www.fotmob.com/api/teams?id=${LEGANES_FOTMOB_ID}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      const data2 = await r2.json();
+      const matches = [];
+
+      // Intentar múltiples rutas de datos
+      const paths = [
+        data2?.fixtures?.allFixtures?.fixtures,
+        data2?.recentResults,
+        data2?.upcomingFixtures,
+      ];
+      paths.forEach(p => { if(Array.isArray(p)) p.forEach(m => matches.push(m)); });
+
+      LEGANES_MATCHES = matches;
+      renderLeganes();
+    } catch(e2){
+      // Usar football-data.org como último recurso
+      await loadLeganesFootballData();
+    }
   }
 }
 
-function getMatchDate(m){
-  // Distintas estructuras posibles según la API
-  const d=m.fixture?.date||m.date||m.datetime||m.utcDate||null;
-  return d?new Date(d):null;
+async function loadLeganesFootballData(){
+  const list = document.getElementById('leganes-list');
+  try {
+    const r = await fetch(
+      'https://api.football-data.org/v4/teams/745/matches?limit=50',
+      { headers: { 'X-Auth-Token': 'e7c0f107ddfc4eb7943e7ad532e661f1' } }
+    );
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    LEGANES_MATCHES = (data.matches || []).map(m => ({
+      _source: 'fd',
+      id: m.id,
+      home: m.homeTeam?.name,
+      away: m.awayTeam?.name,
+      homeId: m.homeTeam?.id,
+      awayId: m.awayTeam?.id,
+      date: m.utcDate,
+      status: m.status,
+      scoreHome: m.score?.fullTime?.home,
+      scoreAway: m.score?.fullTime?.away,
+      competition: m.competition?.name,
+    }));
+    renderLeganes();
+  } catch(e2){
+    list.innerHTML = '<div class="loading">⚠️ No se pudieron cargar los partidos. Inténtalo de nuevo.</div>';
+  }
 }
-function getHomeId(m){ return m.teams?.home?.id||m.homeTeam?.id||null; }
-function getAwayId(m){ return m.teams?.away?.id||m.awayTeam?.id||null; }
-function getHomeName(m){ return m.teams?.home?.name||m.homeTeam?.name||'Local'; }
-function getAwayName(m){ return m.teams?.away?.name||m.awayTeam?.name||'Visitante'; }
-function getStatus(m){ return m.fixture?.status?.short||m.status||''; }
-function getScoreHome(m){ return m.goals?.home??m.score?.fullTime?.home??m.score?.home??null; }
-function getScoreAway(m){ return m.goals?.away??m.score?.fullTime?.away??m.score?.away??null; }
-function getLeague(m){ return m.league?.name||m.competition?.name||m.league||''; }
+
+// Parsear partido independientemente del formato
+function parseMatch(m){
+  if(m._source === 'fd'){
+    const isHome = m.homeId === 745 || (m.home||'').toLowerCase().includes('legan');
+    const date = m.date ? new Date(m.date) : null;
+    const status = (m.status||'').toUpperCase();
+    return {
+      rival: isHome ? m.away : m.home,
+      isHome,
+      date,
+      hasDate: !!date,
+      isLive: ['LIVE','IN_PLAY','PAUSED','1H','HT','2H'].includes(status),
+      isFinished: ['FINISHED','FT','AET','PEN'].includes(status),
+      scoreUs: isHome ? m.scoreHome : m.scoreAway,
+      scoreThem: isHome ? m.scoreAway : m.scoreHome,
+      competition: m.competition || '',
+    };
+  }
+  // Formato FotMob
+  const homeId = m.home?.id || m.homeTeamId;
+  const awayId = m.away?.id || m.awayTeamId;
+  const homeName = m.home?.name || m.homeTeam?.name || '';
+  const awayName = m.away?.name || m.awayTeam?.name || '';
+  const isHome = homeId === LEGANES_FOTMOB_ID || homeName.toLowerCase().includes('legan');
+  const rival = isHome ? awayName : homeName;
+  const dateStr = m.status?.utcTime || m.utcTime || m.date || null;
+  const date = dateStr ? new Date(dateStr) : null;
+  const statusStr = (m.status?.reason?.short || m.status?.short || m.statusShort || '').toUpperCase();
+  const isLive = ['LIVE','1H','HT','2H','ET','IN_PLAY'].includes(statusStr) || m.status?.ongoing === true;
+  const isFinished = ['FT','AET','PEN','FINISHED'].includes(statusStr) || (m.status?.finished === true);
+  const scoreUs = isHome
+    ? (m.home?.score ?? m.score?.home ?? null)
+    : (m.away?.score ?? m.score?.away ?? null);
+  const scoreThem = isHome
+    ? (m.away?.score ?? m.score?.away ?? null)
+    : (m.home?.score ?? m.score?.home ?? null);
+  const competition = m.tournament?.name || m.league?.name || m.competition || '';
+  return { rival, isHome, date, hasDate: !!date, isLive, isFinished, scoreUs, scoreThem, competition };
+}
 
 function renderLeganes(){
-  const filter=document.getElementById('leg-filter').value;
-  const now=new Date();
+  const filter = document.getElementById('leg-filter').value;
+  const now = new Date();
 
-  const COMPS_OK=['La Liga','LaLiga','Primera Division','Copa del Rey','Friendly','Club Friendly','Friendlies Clubs','Amistoso'];
+  let matches = LEGANES_MATCHES.map(m => ({ raw: m, parsed: parseMatch(m) }))
+    .filter(({parsed: p}) => {
+      if(filter === 'home' && !p.isHome) return false;
+      if(filter === 'away' && p.isHome) return false;
+      if(filter === 'past' && !p.isFinished) return false;
+      if(filter === 'upcoming' && (p.isFinished || p.isLive)) return false;
+      return true;
+    });
 
-  let matches=LEGANES_MATCHES.filter(m=>{
-    const league=getLeague(m).toLowerCase();
-    // Filtrar solo competiciones relevantes
-    const relevant=league.includes('liga')||league.includes('copa')||league.includes('friend')||league.includes('amist')||league.includes('primera');
-    if(!relevant) return false;
-
-    const isHome=getHomeId(m)===LEGANES_ID||getHomeName(m).toLowerCase().includes('legan');
-    const date=getMatchDate(m);
-    const status=getStatus(m).toUpperCase();
-    const finished=['FT','AET','PEN','AP','ABD'].includes(status)||status==='FINISHED';
-    const upcoming=['NS','TBD','SCHEDULED','TIMED','PST'].includes(status)||status==='';
-    const live=['1H','HT','2H','ET','BT','P','SUSP','INT','LIVE','IN_PLAY','PAUSED'].includes(status);
-
-    if(filter==='home'&&!isHome) return false;
-    if(filter==='away'&&isHome) return false;
-    if(filter==='past'&&!finished) return false;
-    if(filter==='upcoming'&&!upcoming) return false;
-    return true;
-  });
-
-  // Ordenar: en directo primero, luego próximos (asc), luego jugados (desc)
-  matches.sort((a,b)=>{
-    const sa=getStatus(a).toUpperCase(),sb=getStatus(b).toUpperCase();
-    const liveS=['1H','HT','2H','ET','BT','P','LIVE','IN_PLAY'].includes;
-    const da=getMatchDate(a)||new Date(9999,0),db=getMatchDate(b)||new Date(9999,0);
-    const finA=['FT','AET','PEN','AP'].includes(sa),finB=['FT','AET','PEN','AP'].includes(sb);
-    if(!finA&&!finB) return da-db;
-    if(!finA) return -1; if(!finB) return 1;
-    return db-da;
+  // Ordenar: en directo → próximos (asc) → jugados (desc)
+  matches.sort(({parsed:a},{parsed:b})=>{
+    if(a.isLive && !b.isLive) return -1;
+    if(!a.isLive && b.isLive) return 1;
+    if(!a.isFinished && !b.isFinished){
+      const da = a.date || new Date(9999,0);
+      const db = b.date || new Date(9999,0);
+      return da - db;
+    }
+    if(!a.isFinished) return -1;
+    if(!b.isFinished) return 1;
+    const da = a.date || new Date(0), db = b.date || new Date(0);
+    return db - da;
   });
 
   // Stats
-  const finished=LEGANES_MATCHES.filter(m=>{const s=getStatus(m).toUpperCase();return ['FT','AET','PEN','AP'].includes(s);});
-  const wins=finished.filter(m=>{
-    const isHome=getHomeId(m)===LEGANES_ID||getHomeName(m).toLowerCase().includes('legan');
-    const gh=getScoreHome(m),ga=getScoreAway(m);
-    if(gh===null||ga===null) return false;
-    return isHome?gh>ga:ga>gh;
-  }).length;
-  document.getElementById('st-jugados').textContent=finished.length||'0';
-  document.getElementById('st-victorias').textContent=wins||'0';
-
-  const next=matches.find(m=>{
-    const s=getStatus(m).toUpperCase();
-    return ['NS','TBD','SCHEDULED','TIMED','PST',''].includes(s);
-  });
-  if(next){
-    const d=getMatchDate(next);
-    const isHome=getHomeId(next)===LEGANES_ID||getHomeName(next).toLowerCase().includes('legan');
-    const rival=isHome?getAwayName(next):getHomeName(next);
-    const league=getLeague(next);
-    if(d){
-      document.getElementById('st-proximo').innerHTML=
-        `${rival}<br><span style="font-size:10px;color:var(--muted)">${d.toLocaleDateString('es-ES',{day:'2-digit',month:'short',timeZone:'Europe/Madrid'})} ${d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'})}</span>`;
+  const finished = matches.filter(({parsed:p}) => p.isFinished);
+  const wins = finished.filter(({parsed:p}) => p.scoreUs !== null && p.scoreUs > p.scoreThem).length;
+  document.getElementById('st-jugados').textContent = finished.length || '0';
+  document.getElementById('st-victorias').textContent = wins || '0';
+  const nextM = matches.find(({parsed:p}) => !p.isFinished && !p.isLive);
+  if(nextM){
+    const p = nextM.parsed;
+    if(p.date){
+      document.getElementById('st-proximo').innerHTML =
+        `${p.rival}<br><span style="font-size:10px;color:var(--muted)">${p.date.toLocaleDateString('es-ES',{day:'2-digit',month:'short',timeZone:'Europe/Madrid'})} ${p.date.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'})}</span>`;
     } else {
-      document.getElementById('st-proximo').innerHTML=`${rival}<br><span class="no-date">Fecha por confirmar</span>`;
+      document.getElementById('st-proximo').innerHTML = `${p.rival}<br><span class="no-date">Fecha por confirmar</span>`;
     }
   } else {
-    document.getElementById('st-proximo').textContent='—';
+    document.getElementById('st-proximo').textContent = '—';
   }
 
   if(!matches.length){
-    document.getElementById('leganes-list').innerHTML='<div class="loading">No hay partidos para mostrar.</div>';
+    document.getElementById('leganes-list').innerHTML = '<div class="loading">No hay partidos para mostrar.</div>';
     return;
   }
 
-  document.getElementById('leganes-list').innerHTML='<div class="matches-list">'+matches.map(m=>{
-    const isHome=getHomeId(m)===LEGANES_ID||getHomeName(m).toLowerCase().includes('legan');
-    const rival=isHome?getAwayName(m):getHomeName(m);
-    const date=getMatchDate(m);
-    const status=getStatus(m).toUpperCase();
-    const live=['1H','HT','2H','ET','BT','P','LIVE','IN_PLAY','PAUSED'].includes(status);
-    const finished=['FT','AET','PEN','AP'].includes(status);
-    const league=getLeague(m);
+  document.getElementById('leganes-list').innerHTML = '<div class="matches-list">' + matches.map(({parsed:p}) => {
+    const badge = p.isHome ? '🏠' : '✈️';
+    const locStr = p.isHome
+      ? '<span style="color:var(--green)">Casa</span>'
+      : '<span style="color:var(--accent)">Fuera</span>';
 
-    const gh=getScoreHome(m),ga=getScoreAway(m);
-    const legGoals=isHome?gh:ga, rivGoals=isHome?ga:gh;
-
-    let scoreHTML='';
-    if(live){
-      scoreHTML=`<div class="match-score"><span class="live-dot"></span>${legGoals??'?'} - ${rivGoals??'?'}</div>`;
-    } else if(finished&&legGoals!==null){
-      const cls=legGoals>rivGoals?'score-win':legGoals<rivGoals?'score-loss':'score-draw';
-      scoreHTML=`<div class="match-score ${cls}">${legGoals} - ${rivGoals}</div>`;
-    } else if(date){
-      const timeStr=date.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'});
-      const dateStr=date.toLocaleDateString('es-ES',{weekday:'short',day:'2-digit',month:'short',timeZone:'Europe/Madrid'});
-      scoreHTML=`<div class="score-pending">${dateStr}<br>${timeStr}</div>`;
+    let scoreHTML = '';
+    if(p.isLive){
+      scoreHTML = `<div class="match-score"><span class="live-dot"></span>${p.scoreUs??'?'} - ${p.scoreThem??'?'}</div>`;
+    } else if(p.isFinished && p.scoreUs !== null){
+      const cls = p.scoreUs > p.scoreThem ? 'score-win' : p.scoreUs < p.scoreThem ? 'score-loss' : 'score-draw';
+      scoreHTML = `<div class="match-score ${cls}">${p.scoreUs} - ${p.scoreThem}</div>`;
+    } else if(p.date){
+      const dateStr = p.date.toLocaleDateString('es-ES',{weekday:'short',day:'2-digit',month:'short',timeZone:'Europe/Madrid'});
+      const timeStr = p.date.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'});
+      scoreHTML = `<div class="score-pending">${dateStr}<br>${timeStr}</div>`;
     } else {
-      scoreHTML=`<div class="score-pending no-date">Fecha por<br>confirmar</div>`;
+      scoreHTML = `<div class="score-pending no-date">Pendiente de<br>confirmación</div>`;
     }
 
-    const badge=isHome?'🏠':'✈️';
-    const cls=live?'match-live':finished?'match-card':(isHome?'match-home':'match-away');
-    const dateInfo=date?date.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric',timeZone:'Europe/Madrid'}):'';
+    const cardCls = p.isLive ? 'match-live' : p.isFinished ? '' : (p.isHome ? 'match-home' : 'match-away');
+    const dateInfo = p.date ? p.date.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric',timeZone:'Europe/Madrid'}) : '';
+    const comp = p.competition ? `<span class="match-comp">${p.competition}</span>` : '';
+    const liveTag = p.isLive ? `<span style="color:var(--red)"><span class="live-dot"></span>EN DIRECTO</span>` : '';
 
-    return `<div class="match-card ${cls}">
+    return `<div class="match-card ${cardCls}">
       <div class="match-badge">${badge}</div>
       <div class="match-info">
-        <div class="match-rival">Leganés vs ${rival}</div>
+        <div class="match-rival">Leganés vs ${p.rival||'Por confirmar'}</div>
         <div class="match-meta">
-          ${dateInfo?`<span>${dateInfo}</span>`:''}
-          <span>${isHome?'<span style="color:var(--green)">Casa</span>':'<span style="color:var(--accent)">Fuera</span>'}</span>
-          ${league?`<span class="match-comp">${league}</span>`:''}
-          ${live?`<span style="color:var(--red)"><span class="live-dot"></span>EN DIRECTO</span>`:''}
+          ${dateInfo ? `<span>${dateInfo}</span>` : ''}
+          <span>${locStr}</span>
+          ${comp}${liveTag}
         </div>
       </div>
       ${scoreHTML}
     </div>`;
-  }).join('')+'</div>';
+  }).join('') + '</div>';
 }
 
 // ══════════════════════════
