@@ -383,7 +383,6 @@ async function gistSave(section,data){
 // LEGANÉS
 // ══════════════════════════
 const LEGANES_FD_ID = 745;
-const FD_TOKEN = 'e7c0f107ddfc4eb7943e7ad532e661f1';
 let LEGANES_MATCHES = [];
 let leganesRefreshInterval = null;
 
@@ -397,20 +396,10 @@ async function loadLeganes(){
 
 async function fetchLeganes(){
   try{
-    // Traer partidos de temporada actual + siguiente (para amistosos de verano)
-    const urls = [
-      `https://api.football-data.org/v4/teams/${LEGANES_FD_ID}/matches?status=SCHEDULED,TIMED,IN_PLAY,PAUSED,FINISHED&limit=100`,
-    ];
-    let allMatches = [];
-    for(const url of urls){
-      const r = await fetch(url, { headers: { 'X-Auth-Token': FD_TOKEN } });
-      if(!r.ok) continue;
-      const data = await r.json();
-      allMatches = [...allMatches, ...(data.matches||[])];
-    }
-    // Deduplicar por id
-    const seen = new Set();
-    LEGANES_MATCHES = allMatches.filter(m => { if(seen.has(m.id)) return false; seen.add(m.id); return true; });
+    // Llamar al Worker que hace la petición a football-data.org sin CORS
+    const r = await fetch('https://misfinanzas-api.alvarohenche15.workers.dev/leganes');
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    LEGANES_MATCHES = await r.json();
     renderLeganes();
   } catch(e){
     document.getElementById('leganes-list').innerHTML = `<div class="loading">⚠️ Error al cargar partidos: ${e.message}</div>`;
