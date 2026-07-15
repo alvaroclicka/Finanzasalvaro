@@ -380,9 +380,10 @@ async function gistSave(section,data){
 }
 
 // ══════════════════════════
-// LEGANÉS — FotMob
+// LEGANÉS
 // ══════════════════════════
-const LEGANES_FOTMOB_ID = 7854;
+const LEGANES_FD_ID = 745;
+const FD_TOKEN = 'e7c0f107ddfc4eb7943e7ad532e661f1';
 let LEGANES_MATCHES = [];
 let leganesRefreshInterval = null;
 
@@ -390,174 +391,78 @@ async function loadLeganes(){
   const list = document.getElementById('leganes-list');
   list.innerHTML = '<div class="loading"><span class="spinner"></span>Cargando partidos del Leganés...</div>';
   await fetchLeganes();
-  // Actualizar cada 60 segundos automáticamente
   if(leganesRefreshInterval) clearInterval(leganesRefreshInterval);
   leganesRefreshInterval = setInterval(fetchLeganes, 60000);
 }
 
 async function fetchLeganes(){
   try{
-    // FotMob API: fixtures del equipo
-    const r = await fetch(
-      `https://www.fotmob.com/api/teams?id=${LEGANES_FOTMOB_ID}&tab=fixtures&type=team&timeZone=Europe/Madrid`,
-      { headers: { 'Accept': 'application/json' } }
-    );
-    if(!r.ok) throw new Error('HTTP ' + r.status);
-    const data = await r.json();
-
-    // Extraer partidos de todas las competiciones
-    const allMatches = [];
-    const fixtures = data?.fixtures?.allFixtures?.fixtures || data?.fixtures || [];
-
-    (Array.isArray(fixtures) ? fixtures : []).forEach(match => {
-      allMatches.push(match);
-    });
-
-    // Si no hay fixtures directos, buscar en el formato alternativo
-    if(allMatches.length === 0){
-      const sections = data?.fixtures?.allFixtures?.nextMatch
-        ? [data.fixtures.allFixtures.nextMatch, ...(data.fixtures.allFixtures.fixtures||[])]
-        : [];
-      sections.forEach(m => allMatches.push(m));
+    // Traer partidos de temporada actual + siguiente (para amistosos de verano)
+    const urls = [
+      `https://api.football-data.org/v4/teams/${LEGANES_FD_ID}/matches?status=SCHEDULED,TIMED,IN_PLAY,PAUSED,FINISHED&limit=100`,
+    ];
+    let allMatches = [];
+    for(const url of urls){
+      const r = await fetch(url, { headers: { 'X-Auth-Token': FD_TOKEN } });
+      if(!r.ok) continue;
+      const data = await r.json();
+      allMatches = [...allMatches, ...(data.matches||[])];
     }
-
-    LEGANES_MATCHES = allMatches;
+    // Deduplicar por id
+    const seen = new Set();
+    LEGANES_MATCHES = allMatches.filter(m => { if(seen.has(m.id)) return false; seen.add(m.id); return true; });
     renderLeganes();
-  } catch(e) {
-    // Fallback: usar la API de FotMob directamente
-    try {
-      const r2 = await fetch(`https://www.fotmob.com/api/teams?id=${LEGANES_FOTMOB_ID}`, {
-        headers: { 'Accept': 'application/json' }
-      });
-      const data2 = await r2.json();
-      const matches = [];
-
-      // Intentar múltiples rutas de datos
-      const paths = [
-        data2?.fixtures?.allFixtures?.fixtures,
-        data2?.recentResults,
-        data2?.upcomingFixtures,
-      ];
-      paths.forEach(p => { if(Array.isArray(p)) p.forEach(m => matches.push(m)); });
-
-      LEGANES_MATCHES = matches;
-      renderLeganes();
-    } catch(e2){
-      // Usar football-data.org como último recurso
-      await loadLeganesFootballData();
-    }
+  } catch(e){
+    document.getElementById('leganes-list').innerHTML = `<div class="loading">⚠️ Error al cargar partidos: ${e.message}</div>`;
   }
-}
-
-async function loadLeganesFootballData(){
-  const list = document.getElementById('leganes-list');
-  try {
-    const r = await fetch(
-      'https://api.football-data.org/v4/teams/745/matches?limit=50',
-      { headers: { 'X-Auth-Token': 'e7c0f107ddfc4eb7943e7ad532e661f1' } }
-    );
-    if(!r.ok) throw new Error('HTTP ' + r.status);
-    const data = await r.json();
-    LEGANES_MATCHES = (data.matches || []).map(m => ({
-      _source: 'fd',
-      id: m.id,
-      home: m.homeTeam?.name,
-      away: m.awayTeam?.name,
-      homeId: m.homeTeam?.id,
-      awayId: m.awayTeam?.id,
-      date: m.utcDate,
-      status: m.status,
-      scoreHome: m.score?.fullTime?.home,
-      scoreAway: m.score?.fullTime?.away,
-      competition: m.competition?.name,
-    }));
-    renderLeganes();
-  } catch(e2){
-    list.innerHTML = '<div class="loading">⚠️ No se pudieron cargar los partidos. Inténtalo de nuevo.</div>';
-  }
-}
-
-// Parsear partido independientemente del formato
-function parseMatch(m){
-  if(m._source === 'fd'){
-    const isHome = m.homeId === 745 || (m.home||'').toLowerCase().includes('legan');
-    const date = m.date ? new Date(m.date) : null;
-    const status = (m.status||'').toUpperCase();
-    return {
-      rival: isHome ? m.away : m.home,
-      isHome,
-      date,
-      hasDate: !!date,
-      isLive: ['LIVE','IN_PLAY','PAUSED','1H','HT','2H'].includes(status),
-      isFinished: ['FINISHED','FT','AET','PEN'].includes(status),
-      scoreUs: isHome ? m.scoreHome : m.scoreAway,
-      scoreThem: isHome ? m.scoreAway : m.scoreHome,
-      competition: m.competition || '',
-    };
-  }
-  // Formato FotMob
-  const homeId = m.home?.id || m.homeTeamId;
-  const awayId = m.away?.id || m.awayTeamId;
-  const homeName = m.home?.name || m.homeTeam?.name || '';
-  const awayName = m.away?.name || m.awayTeam?.name || '';
-  const isHome = homeId === LEGANES_FOTMOB_ID || homeName.toLowerCase().includes('legan');
-  const rival = isHome ? awayName : homeName;
-  const dateStr = m.status?.utcTime || m.utcTime || m.date || null;
-  const date = dateStr ? new Date(dateStr) : null;
-  const statusStr = (m.status?.reason?.short || m.status?.short || m.statusShort || '').toUpperCase();
-  const isLive = ['LIVE','1H','HT','2H','ET','IN_PLAY'].includes(statusStr) || m.status?.ongoing === true;
-  const isFinished = ['FT','AET','PEN','FINISHED'].includes(statusStr) || (m.status?.finished === true);
-  const scoreUs = isHome
-    ? (m.home?.score ?? m.score?.home ?? null)
-    : (m.away?.score ?? m.score?.away ?? null);
-  const scoreThem = isHome
-    ? (m.away?.score ?? m.score?.away ?? null)
-    : (m.home?.score ?? m.score?.home ?? null);
-  const competition = m.tournament?.name || m.league?.name || m.competition || '';
-  return { rival, isHome, date, hasDate: !!date, isLive, isFinished, scoreUs, scoreThem, competition };
 }
 
 function renderLeganes(){
   const filter = document.getElementById('leg-filter').value;
   const now = new Date();
 
-  let matches = LEGANES_MATCHES.map(m => ({ raw: m, parsed: parseMatch(m) }))
-    .filter(({parsed: p}) => {
-      if(filter === 'home' && !p.isHome) return false;
-      if(filter === 'away' && p.isHome) return false;
-      if(filter === 'past' && !p.isFinished) return false;
-      if(filter === 'upcoming' && (p.isFinished || p.isLive)) return false;
-      return true;
-    });
+  const isHome = m => m.homeTeam?.id === LEGANES_FD_ID;
+  const rival  = m => isHome(m) ? m.awayTeam?.name : m.homeTeam?.name;
+  const status = m => (m.status||'').toUpperCase();
+  const isLive = m => ['IN_PLAY','PAUSED','LIVE'].includes(status(m));
+  const isDone = m => ['FINISHED'].includes(status(m));
+  const isNext = m => ['SCHEDULED','TIMED','POSTPONED'].includes(status(m));
+  const date   = m => m.utcDate ? new Date(m.utcDate) : null;
+  const goalsUs   = m => isHome(m) ? m.score?.fullTime?.home : m.score?.fullTime?.away;
+  const goalsThem = m => isHome(m) ? m.score?.fullTime?.away : m.score?.fullTime?.home;
+  const comp   = m => m.competition?.name || '';
 
-  // Ordenar: en directo → próximos (asc) → jugados (desc)
-  matches.sort(({parsed:a},{parsed:b})=>{
-    if(a.isLive && !b.isLive) return -1;
-    if(!a.isLive && b.isLive) return 1;
-    if(!a.isFinished && !b.isFinished){
-      const da = a.date || new Date(9999,0);
-      const db = b.date || new Date(9999,0);
-      return da - db;
-    }
-    if(!a.isFinished) return -1;
-    if(!b.isFinished) return 1;
-    const da = a.date || new Date(0), db = b.date || new Date(0);
-    return db - da;
+  let matches = LEGANES_MATCHES.filter(m => {
+    if(filter === 'home'     && !isHome(m))        return false;
+    if(filter === 'away'     &&  isHome(m))        return false;
+    if(filter === 'past'     && !isDone(m))        return false;
+    if(filter === 'upcoming' && (isDone(m)||isLive(m))) return false;
+    return true;
+  });
+
+  matches.sort((a,b) => {
+    if(isLive(a) && !isLive(b)) return -1;
+    if(!isLive(a) && isLive(b)) return 1;
+    if(isNext(a) && isNext(b)) return (date(a)||new Date(9999,0)) - (date(b)||new Date(9999,0));
+    if(isNext(a)) return -1;
+    if(isNext(b)) return 1;
+    return (date(b)||new Date(0)) - (date(a)||new Date(0));
   });
 
   // Stats
-  const finished = matches.filter(({parsed:p}) => p.isFinished);
-  const wins = finished.filter(({parsed:p}) => p.scoreUs !== null && p.scoreUs > p.scoreThem).length;
-  document.getElementById('st-jugados').textContent = finished.length || '0';
+  const done = LEGANES_MATCHES.filter(m => isDone(m));
+  const wins = done.filter(m => { const gu=goalsUs(m),gt=goalsThem(m); return gu!==null&&gu!==undefined&&gu>gt; }).length;
+  document.getElementById('st-jugados').textContent = done.length || '0';
   document.getElementById('st-victorias').textContent = wins || '0';
-  const nextM = matches.find(({parsed:p}) => !p.isFinished && !p.isLive);
-  if(nextM){
-    const p = nextM.parsed;
-    if(p.date){
+
+  const next = matches.find(m => isNext(m));
+  if(next){
+    const d = date(next);
+    if(d){
       document.getElementById('st-proximo').innerHTML =
-        `${p.rival}<br><span style="font-size:10px;color:var(--muted)">${p.date.toLocaleDateString('es-ES',{day:'2-digit',month:'short',timeZone:'Europe/Madrid'})} ${p.date.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'})}</span>`;
+        `${rival(next)}<br><span style="font-size:10px;color:var(--muted)">${d.toLocaleDateString('es-ES',{day:'2-digit',month:'short',timeZone:'Europe/Madrid'})} ${d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'})}</span>`;
     } else {
-      document.getElementById('st-proximo').innerHTML = `${p.rival}<br><span class="no-date">Fecha por confirmar</span>`;
+      document.getElementById('st-proximo').innerHTML = `${rival(next)}<br><span class="no-date">Pendiente confirmación</span>`;
     }
   } else {
     document.getElementById('st-proximo').textContent = '—';
@@ -568,126 +473,46 @@ function renderLeganes(){
     return;
   }
 
-  document.getElementById('leganes-list').innerHTML = '<div class="matches-list">' + matches.map(({parsed:p}) => {
-    const badge = p.isHome ? '🏠' : '✈️';
-    const locStr = p.isHome
-      ? '<span style="color:var(--green)">Casa</span>'
-      : '<span style="color:var(--accent)">Fuera</span>';
+  document.getElementById('leganes-list').innerHTML = '<div class="matches-list">' + matches.map(m => {
+    const home = isHome(m);
+    const badge = home ? '🏠' : '✈️';
+    const locStr = home ? '<span style="color:var(--green)">Casa</span>' : '<span style="color:var(--accent)">Fuera</span>';
+    const d = date(m);
+    const gu = goalsUs(m), gt = goalsThem(m);
+    const competition = comp(m);
 
     let scoreHTML = '';
-    if(p.isLive){
-      scoreHTML = `<div class="match-score"><span class="live-dot"></span>${p.scoreUs??'?'} - ${p.scoreThem??'?'}</div>`;
-    } else if(p.isFinished && p.scoreUs !== null){
-      const cls = p.scoreUs > p.scoreThem ? 'score-win' : p.scoreUs < p.scoreThem ? 'score-loss' : 'score-draw';
-      scoreHTML = `<div class="match-score ${cls}">${p.scoreUs} - ${p.scoreThem}</div>`;
-    } else if(p.date){
-      const dateStr = p.date.toLocaleDateString('es-ES',{weekday:'short',day:'2-digit',month:'short',timeZone:'Europe/Madrid'});
-      const timeStr = p.date.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'});
+    if(isLive(m)){
+      scoreHTML = `<div class="match-score"><span class="live-dot"></span>${gu??'?'} - ${gt??'?'}</div>`;
+    } else if(isDone(m) && gu !== null && gu !== undefined){
+      const cls = gu>gt ? 'score-win' : gu<gt ? 'score-loss' : 'score-draw';
+      scoreHTML = `<div class="match-score ${cls}">${gu} - ${gt}</div>`;
+    } else if(d){
+      const dateStr = d.toLocaleDateString('es-ES',{weekday:'short',day:'2-digit',month:'short',timeZone:'Europe/Madrid'});
+      const timeStr = d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'});
       scoreHTML = `<div class="score-pending">${dateStr}<br>${timeStr}</div>`;
     } else {
       scoreHTML = `<div class="score-pending no-date">Pendiente de<br>confirmación</div>`;
     }
 
-    const cardCls = p.isLive ? 'match-live' : p.isFinished ? '' : (p.isHome ? 'match-home' : 'match-away');
-    const dateInfo = p.date ? p.date.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric',timeZone:'Europe/Madrid'}) : '';
-    const comp = p.competition ? `<span class="match-comp">${p.competition}</span>` : '';
-    const liveTag = p.isLive ? `<span style="color:var(--red)"><span class="live-dot"></span>EN DIRECTO</span>` : '';
+    const cardCls = isLive(m) ? 'match-live' : isDone(m) ? '' : (home ? 'match-home' : 'match-away');
+    const dateInfo = d ? d.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric',timeZone:'Europe/Madrid'}) : '';
+    const compTag  = competition ? `<span class="match-comp">${competition}</span>` : '';
+    const liveTag  = isLive(m) ? `<span style="color:var(--red)"><span class="live-dot"></span>EN DIRECTO</span>` : '';
 
     return `<div class="match-card ${cardCls}">
       <div class="match-badge">${badge}</div>
       <div class="match-info">
-        <div class="match-rival">Leganés vs ${p.rival||'Por confirmar'}</div>
+        <div class="match-rival">Leganés vs ${rival(m)||'Por confirmar'}</div>
         <div class="match-meta">
           ${dateInfo ? `<span>${dateInfo}</span>` : ''}
           <span>${locStr}</span>
-          ${comp}${liveTag}
+          ${compTag}${liveTag}
         </div>
       </div>
       ${scoreHTML}
     </div>`;
   }).join('') + '</div>';
-}
-
-// ══════════════════════════
-// ARMARIO
-// ══════════════════════════
-let CAMISETAS=[], BUFANDAS=[];
-
-async function loadArmario(){
-  setSyncStatus('sync-status-arm','loading');
-  try{
-    const d=await gistGet('armario');
-    CAMISETAS=d.camisetas||[];
-    BUFANDAS=d.bufandas||[];
-    setSyncStatus('sync-status-arm','ok');
-  }catch(e){
-    try{CAMISETAS=JSON.parse(localStorage.getItem('cam')||'[]');}catch(e2){CAMISETAS=[];}
-    try{BUFANDAS=JSON.parse(localStorage.getItem('buf')||'[]');}catch(e2){BUFANDAS=[];}
-    setSyncStatus('sync-status-arm','error');
-  }
-  renderArmario();
-}
-
-async function saveArmario(){
-  setSyncStatus('sync-status-arm','saving');
-  localStorage.setItem('cam',JSON.stringify(CAMISETAS));
-  localStorage.setItem('buf',JSON.stringify(BUFANDAS));
-  try{
-    await gistSave('armario',{camisetas:CAMISETAS,bufandas:BUFANDAS});
-    setSyncStatus('sync-status-arm','ok');
-  }catch(e){ setSyncStatus('sync-status-arm','error'); }
-}
-
-function addCamiseta(){
-  const equipo=document.getElementById('cam-equipo').value.trim();
-  const anio=document.getElementById('cam-anio').value.trim();
-  const dorsal=document.getElementById('cam-dorsal').value.trim();
-  const nombre=document.getElementById('cam-nombre').value.trim();
-  const tipo=document.getElementById('cam-tipo').value;
-  const nota=document.getElementById('cam-nota').value.trim();
-  if(!equipo){showToast('Indica el equipo',true);return;}
-  CAMISETAS.push({id:Date.now(),equipo,anio,dorsal,nombre,tipo,nota});
-  saveArmario();
-  ['cam-equipo','cam-anio','cam-dorsal','cam-nombre','cam-nota'].forEach(id=>document.getElementById(id).value='');
-  renderCamisetas();
-  showToast('✅ Camiseta añadida');
-}
-
-function removeCamiseta(id){
-  CAMISETAS=CAMISETAS.filter(c=>c.id!==id);
-  saveArmario();renderCamisetas();showToast('Camiseta eliminada');
-}
-
-function renderCamisetas(){
-  const grid=document.getElementById('camisetas-grid');
-  if(!CAMISETAS.length){
-    grid.innerHTML='<div style="color:var(--muted);font-size:13px;padding:6px 0">Sin camisetas todavía.</div>';return;
-  }
-  grid.innerHTML=CAMISETAS.map(c=>`
-    <div class="cam-card">
-      <button class="btn-del cam-del" onclick="removeCamiseta(${c.id})">✕</button>
-      <div class="cam-dorsal">#${c.dorsal||'—'}</div>
-      <div class="cam-nombre">${c.nombre||'Sin nombre'}</div>
-      <div class="cam-equipo">${c.equipo} · ${c.tipo}</div>
-      <div class="cam-anio">${c.anio||''}${c.nota?` · ${c.nota}`:''}</div>
-    </div>`).join('');
-}
-
-function addBufanda(){
-  const equipo=document.getElementById('buf-equipo').value.trim();
-  const desc=document.getElementById('buf-desc').value.trim();
-  const anio=document.getElementById('buf-anio').value.trim();
-  if(!equipo){showToast('Indica el equipo',true);return;}
-  BUFANDAS.push({id:Date.now(),equipo,desc,anio});
-  saveArmario();
-  ['buf-equipo','buf-desc','buf-anio'].forEach(id=>document.getElementById(id).value='');
-  renderBufandas();
-  showToast('✅ Bufanda añadida');
-}
-
-function removeBufanda(id){
-  BUFANDAS=BUFANDAS.filter(b=>b.id!==id);
-  saveArmario();renderBufandas();showToast('Bufanda eliminada');
 }
 
 function renderBufandas(){
